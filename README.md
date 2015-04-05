@@ -1,5 +1,4 @@
-discourse-awesome-bbcodes
-======================
+#discourse-awesome-bbcodes
 
 A Discourse Plugin to support BBCode tags spawning accross multiple lines.
 By default, support is provided for the following tags:
@@ -9,11 +8,9 @@ By default, support is provided for the following tags:
  - typefaces (humanism/corporate/smartass/alpha/rainbow)
  - spoiler
 
-Usage
-=====
+##Usage
 
-Spoiler
-====
+###Spoiler
 
 In your posts, surround text or images with `[spoiler]` ... `[/spoiler]`.
 For example:
@@ -23,8 +20,7 @@ For example:
 ```
 
 
-Hide/NSFW
-====
+###Hide/NSFW
 
 In your posts, surround text with `[hide=...]` and `[/hide]` or with `[nsfw]` and `[/nsfw]`
 
@@ -42,8 +38,7 @@ http://www.example.com/sexypic.jpg
 [/nsfw]
 ```
 
-Color
-====
+###Color
 
 In your posts, surround text with `[color=...]` and `[/color]`. Color values are those supported by HTML, like `red` and `#ff000`. For example:
 
@@ -51,8 +46,7 @@ In your posts, surround text with `[color=...]` and `[/color]`. Color values are
 Look at my [color=red]red words[/color] and be amazed! Also, [color=#33ff33]green is cool[/color] too.
 ```
 
-Typefaces
-====
+###Typefaces
 
 In your posts, surround text with `[humanism]` and `[/humanism]`.
 
@@ -62,8 +56,7 @@ In your posts, surround text with `[humanism]` and `[/humanism]`.
 
 You can also replace `humanism` with `smartass`, `corporate`, `rainbow`, `alpha` for a different effect.
 
-Installation
-============
+##Installation
 
 * Add the plugin's repo url to your container's yml config file
 
@@ -86,7 +79,6 @@ git pull
 ./launcher rebuild app
 ```
 
-License
-=======
+##License
 
 MIT
