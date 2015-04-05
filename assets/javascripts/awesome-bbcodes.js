@@ -174,15 +174,14 @@
     return new BBTag(tagName, false, markupGenerator);
   };
 
-  var BBCodeParseTree = function (treeType, content, attributes, closed) {
+  var BBCodeParseTree = function (treeType, content, attributes, subTrees) {
     this.treeType = treeType;
     this.content = content;
     this.attributes = attributes;
-    this.subTrees = [];
-    if (typeof closed === 'undefined') {
-      this.closed = true;
+    if (typeof subTrees === 'undefined') {
+      this.subTrees = [];
     } else {
-      this.closed = closed;
+      this.subTrees = subTrees;
     }
   };
 
@@ -193,48 +192,58 @@
   BBCodeParseTree.buildTree = function (str, bbTags) {
     var tokenizer = new Tokenizer(bbTags);
     var tokens = tokenizer.tokenizeString(str);
-    return new BBCodeParseTree(0, str).buildTreeFromTokens(tokens.reverse());
+    return new BBCodeParseTree(0, str, {}, BBCodeParseTree.buildTreeFromTokens(tokens));
   };
 
-  // TODO: remove recursion
-  BBCodeParseTree.prototype.buildTreeFromTokens = function (tokens, currentTag) {
-    if (typeof currentTag === "undefined") {
-      currentTag = ""
-    }
-    if (tokens.length == 0) {
-      return this
-    }
-    var currentToken = tokens.pop();
-    if (currentToken.tokenType == 0) {
-      this.subTrees.push(new BBCodeParseTree(1, currentToken.content))
-    }
-    var tagName = currentToken.content;
-    if (currentToken.tokenType == 1) {
-      var childTree = new BBCodeParseTree(2, tagName, currentToken.tagAttributes, false).buildTreeFromTokens(tokens, tagName);
-      if (!childTree.closed) {
-        this.subTrees.push(new BBCodeParseTree(1, currentToken.asTextToken().content));
-        this.subTrees = this.subTrees.concat(childTree.subTrees);
-      } else {
-        this.subTrees.push(childTree);
+  BBCodeParseTree.buildTreeFromTokens = function (tokens) {
+    var subTreeStack = [[null,[]]];
+    var length = tokens.length;
+    for (var i = 0; i < length; i++) {
+      var currentToken = tokens[i];
+      // we build on the last element of the subtree stack
+      var ele = subTreeStack[subTreeStack.length - 1];
+      var openingToken = ele[0];
+      var subTrees = ele[1];
+      if (currentToken.tokenType == 0) {
+        subTrees.push(new BBCodeParseTree(1, currentToken.content));
+      }
+      if (currentToken.tokenType == 1) {
+        subTreeStack.push([currentToken, []]);
+      }
+      if (currentToken.tokenType == 2) {
+        if(openingToken !== null){
+          if(openingToken.content === currentToken.content){
+            subTreeStack.pop();
+            var parentEle = subTreeStack[subTreeStack.length - 1];
+            var parentSubTrees = parentEle[1];
+            parentSubTrees.push(new BBCodeParseTree(2, currentToken.content, openingToken.tagAttributes, subTrees));
+          }else{
+            subTrees.push(new BBCodeParseTree(1, currentToken.raw))
+          }
+        }else{
+          subTrees.push(new BBCodeParseTree(1, currentToken.raw))
+        }
       }
     }
-    if (currentToken.tokenType == 2) {
-      if (tagName == currentTag) {
-        this.closed = true;
-        return this;
-      } else {
-        this.subTrees.push(new BBCodeParseTree(1, '[/' + currentToken.content + ']'));
-        return this;
-      }
-    }
-    if (tokens.length == 0) {
-      if (currentTag != "") {
-        return this;
-      }
-    }
-    return this.buildTreeFromTokens(tokens, currentTag);
-  };
 
+    var result = null;
+
+    while(subTreeStack.length > 0){
+      var ele = subTreeStack.pop();
+      var openingToken = ele[0];
+      if(openingToken !== null){
+        var subTrees = ele[1];
+        var parentEle = subTreeStack.pop();
+        var parentSubTrees = parentEle[1];
+        parentSubTrees.push(new BBCodeParseTree(1, openingToken.raw))
+        parentSubTrees = parentSubTrees.concat(subTrees);
+        subTreeStack.push([parentEle[0], parentSubTrees])
+      }else{
+        result = ele[1];
+      }
+    }
+    return result;
+  };
 
   var BBCodeParser = function (bbTags) {
     this.bbTags = bbTags
@@ -246,22 +255,41 @@
   };
 
   BBCodeParser.prototype.treeToHtml = function (subTrees) {
-    var self = this;
-    var htmlString = [];
-    // TODO optimize recursion
-    subTrees.forEach(function (currentTree) {
+    var stack = [];
+    var result = "";
+    if(subTrees.length > 0){
+      stack.push([subTrees, 0, false, []]);
+    }
+    while(stack.length > 0 ){
+      var ele = stack.pop();
+      var currentSubTrees = ele[0];
+      var currentIndex = ele[1];
+      var open = ele[2];
+      var html = ele[3];
+      var currentTree = currentSubTrees[currentIndex];
+      var last = currentIndex === currentSubTrees.length - 1;
       if (currentTree.treeType == 1) {
         var textContent = currentTree.content;
-        htmlString.push(textContent)
+        html.push(textContent)
       } else {
-        var bbTag = self.bbTags[currentTree.content];
-        var content = self.treeToHtml(currentTree.subTrees);
-        htmlString.push(bbTag.markupGenerator(bbTag, content, currentTree.attributes));
+        if(open){
+          var bbTag = this.bbTags[currentTree.content];
+          html.push(bbTag.markupGenerator(bbTag, result, currentTree.attributes));
+        }else{
+          stack.push([currentSubTrees, currentIndex, true, html]);
+          stack.push([currentTree.subTrees, 0, false, []]);
+        }
       }
-    });
-    return htmlString.join('');
+      if(currentTree.treeType == 1 || open ) {
+        if(last){
+          result = html.join('');
+        }else{
+          stack.push([currentSubTrees, currentIndex + 1, false, html]);
+        }
+      }
+    }
+    return result;
   };
-
 
   var bbTags = {};
 
