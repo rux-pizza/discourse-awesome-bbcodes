@@ -73,7 +73,6 @@
       if(quotedAttrPattern.test(attrStr)) {
         attributes[tagName] = "";
         while (attrMatch = attrPattern.exec(attrStr)) {
-          console.log(attrMatch);
           var name = (typeof attrMatch[1] === 'undefined') ? tagName : attrMatch[1];
           if (typeof attrMatch[2] === 'undefined') {
             attributes[name] = attrMatch[3];
@@ -293,8 +292,18 @@
 
   var bbTags = {};
 
+  function splitLines(content, transformation){
+    var result = [];
+    content.split('\n').forEach(function(line){
+      result.push(transformation(line));
+    });
+    return result.join('\n');
+  }
+
   bbTags["color"] = new BBTag("color", false, function (tag, content,attrs) {
-    return "<font color='" + attrs["color"] + "'>" + content + "</font>";
+    return splitLines(content, function(line){
+      return '<span style="color:' + attrs["color"] + '">' + line + '</span>';
+    });
   });
 
   bbTags["nsfw"] = new BBTag("nsfw", false, function (tag, content) {
@@ -306,7 +315,9 @@
   });
 
   bbTags["spoiler"] = new BBTag("spoiler", false, function (tag, content) {
-    return "<div class='spoiler'>" + content + "</div>";
+    return splitLines(content, function(line){
+      return "<span class='spoiler'>" + line + "</span>";
+    });
   });
 
   var parser = new BBCodeParser(bbTags);
@@ -317,14 +328,15 @@
 
   ['smartass','corporate','humanism','alpha','rainbow'].forEach(function(typeface){
     bbTags[typeface] = new BBTag(typeface, false, function (tag, content) {
-      return '<span class="typefaces-tag ' + typeface +'">' + content + '</span>';
+      return splitLines(content, function(line) {
+        return '<span class="typefaces-tag ' + typeface + '">' + line + '</span>';
+      });
     });
   });
 
   Discourse.Dialect.addPreProcessor(replaceBBCodes);
   //color whitelist
-  Discourse.Markdown.whiteListTag('font', 'color');
-  Discourse.Markdown.whiteListTag('spoiler');
+  Discourse.Markdown.whiteListTag('span', 'style');
   //typeface whitelist
   Discourse.Markdown.whiteListTag('span', 'class', '*');
 })();
