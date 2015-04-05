@@ -276,7 +276,10 @@
           html.push(bbTag.markupGenerator(bbTag, result, currentTree.attributes));
         }else{
           stack.push([currentSubTrees, currentIndex, true, html]);
-          stack.push([currentTree.subTrees, 0, false, []]);
+          result = "";
+          if(currentTree.subTrees.length > 0){
+            stack.push([currentTree.subTrees, 0, false, []]);
+          }
         }
       }
       if(currentTree.treeType == 1 || open ) {
