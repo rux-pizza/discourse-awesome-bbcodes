@@ -1,0 +1,57 @@
+// Alpha
+@font-face{
+  font-family: "MyImpact";
+  src: url('/assets/fonts/impact.ttf');
+}
+
+// Corporate
+// No external font-face, uses Palatino.
+
+// Smartass
+
+@font-face{
+  font-family: "EcritureAItaliqueOrne";
+  src: url('/assets/fonts/ecriture-a-italique-orne.otf') format('opentype');
+}
+
+// Humanism
+
+@font-face{
+  font-family: "Humanism";
+  src: url('/assets/fonts/pacifico.ttf') format('opentype');
+}
+
+
+.typefaces-tag {
+
+  &.alpha {
+    font-family: "MyImpact", "Impact";
+    font-size: 17px;
+    text-transform: uppercase;
+  }
+
+  &.corporate {
+    font-family: "Palatino", Times, serif;
+    font-size: 17px;
+  }
+
+  &.humanism {
+    font-family: "Humanism", "Comic Sans MS";
+    font-size: 16px;
+  }
+
+  &.smartass{
+    font-family: "EcritureAItaliqueOrne", "Comic Sans MS";
+    font-size: 28px;
+  }
+
+  &.rainbow {
+      background-image: -webkit-gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) );
+      background-image: gradient( linear, left top, right top, color-stop(0, #f22), color-stop(0.15, #f2f), color-stop(0.3, #22f), color-stop(0.45, #2ff), color-stop(0.6, #2f2),color-stop(0.75, #2f2), color-stop(0.9, #ff2), color-stop(1, #f22) );
+      color:transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+  }
+
+}
+
