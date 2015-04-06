@@ -1,6 +1,6 @@
 #discourse-awesome-bbcodes
 
-A Discourse Plugin to support BBCode tags spawning accross multiple lines.
+A Discourse Plugin to support BBCode tags spawning across multiple lines.
 By default, support is provided for the following tags:
 
  - hide, nsfw
