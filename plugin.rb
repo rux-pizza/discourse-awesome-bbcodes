@@ -9,9 +9,9 @@ register_asset 'javascripts/jquery/spoiler.js'
 register_asset 'javascripts/awesome-bbcodes.js', :server_side
 
 # Typeface fonts
-register_asset 'fonts/EcritureA-Italique-Orne.otf'
+register_asset 'fonts/ecriture-a-italique-orne.otf'
 register_asset 'fonts/impact.ttf'
-register_asset 'fonts/Pacifico.ttf'
+register_asset 'fonts/pacifico.ttf'
 register_asset 'stylesheets/typefaces.css.scss'
 
 # Details Stylesheet

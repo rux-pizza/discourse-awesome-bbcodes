@@ -310,11 +310,11 @@
   });
 
   bbTags["nsfw"] = new BBTag("nsfw", false, function (tag, content) {
-    return "<details><summary>NSFW</summary>" + content + "</details>";
+    return "<details><summary>NSFW</summary><div>" + content + "</div></details>";
   });
 
   bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
-    return "<details><summary>" + attrs["hide"] + "</summary>" + content + "</details>";
+    return "<details><summary>" + attrs["hide"] + "</summary><div>" + content + "</div></details>";
   });
 
   bbTags["spoiler"] = new BBTag("spoiler", false, function (tag, content) {
