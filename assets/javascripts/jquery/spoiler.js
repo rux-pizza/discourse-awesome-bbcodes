@@ -3,24 +3,37 @@
   var isIE = /*@cc_on!@*/false || document.documentMode,
       globalIdCounter = 0;
 
-  var blurText = function($spoiler, radius) {
+  var blurText = function($spoiler, radius, color) {
     var textShadow = "gray 0 0 " + radius + "px";
     if (isIE) { textShadow = radius <= 0 ? "0 0 0 0 gray" : "0 0 " + radius + "px .1px gray"; }
-
-    $spoiler.css("background-color", "transparent")
-            .css("color", "rgba(0, 0, 0, 0)")
-            .css("text-shadow", textShadow);
+    $spoiler.css("background-color", "transparent");
+    if (radius === 0){
+      $spoiler.css("text-shadow", "");
+    }else{
+      $spoiler.css("text-shadow", textShadow);
+    }
+    if(color){
+      $spoiler.css("color", "rgba(0, 0, 0, 0)");
+    }else{
+      $spoiler.css("color", "");
+    }
   };
 
   var blurImage = function($spoiler, radius) {
     // on the first pass, transform images into SVG
-    $("img", $spoiler).wrap("<div style='display: inline-block; overflow: hidden;'></div>").each(function(index, image) {
+    //
+    $("img", $spoiler).each(function(index, image) {
       var transform = function() {
         var w = image.width,
             h = image.height,
             id = ++globalIdCounter;
+        var minimum = Math.min(w,h)/3;
+        var adjustedRadius = radius;
+        if(radius >= minimum) {
+          adjustedRadius = minimum;
+        }
         var svg = "<svg data-spoiler-id='" + id + "' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='" + w + "' height='" + h + "'>" +
-                  "<defs><filter id='blur-" + id + "'><feGaussianBlur id='gaussian-" + id + "' stdDeviation='" + radius + "'></feGaussianBlur></filter></defs>" +
+                  "<defs><filter id='blur-" + id + "'><feGaussianBlur id='gaussian-" + id + "' stdDeviation='" + adjustedRadius + "'></feGaussianBlur></filter></defs>" +
                   "<image xlink:href='" + image.src + "' filter='url(#blur-" + id + ")' width='" + w + "' height='" + h + "'></image>" +
                   "</svg>";
         $(image).replaceWith(svg);
@@ -36,7 +49,14 @@
     // change the blur radius
     $("svg", $spoiler).each(function(index, svg) {
       var id = svg.getAttribute("data-spoiler-id");
-      svg.getElementById("gaussian-" + id).setAttribute("stdDeviation", radius);
+      var width = parseInt(svg.getAttribute("width"));
+      var height = parseInt(svg.getAttribute("height"));
+      var minimum = Math.min(width,height)/3;
+      var adjustedRadius = radius;
+      if(radius >= minimum){
+        adjustedRadius = minimum;
+      }
+      svg.getElementById("gaussian-" + id).setAttribute("stdDeviation", adjustedRadius);
     });
   };
 
@@ -49,28 +69,28 @@
     $spoiler.data("spoiler-state", "blurred");
 
     blurImage($spoiler, maxBlurImage);
-    blurText($spoiler, maxBlurText);
+    blurText($spoiler, maxBlurText, true);
 
     $spoiler.on("mouseover", function() {
       $spoiler.css("cursor", "pointer");
       if ($spoiler.data("spoiler-state") === "blurred") {
         blurImage($spoiler, partialBlurImage);
-        blurText($spoiler, partialBlurText);
+        blurText($spoiler, partialBlurText, true);
       }
     }).on("mouseout", function() {
       if ($spoiler.data("spoiler-state") === "blurred") {
         blurImage($spoiler, maxBlurImage);
-        blurText($spoiler, maxBlurText);
+        blurText($spoiler, maxBlurText, true);
       }
     }).on("click", function(e) {
       if ($spoiler.data("spoiler-state") === "blurred") {
         $spoiler.data("spoiler-state", "revealed").css("cursor", "auto");
         blurImage($spoiler, 0);
-        blurText($spoiler, 0);
+        blurText($spoiler, 0, false);
       } else {
         $spoiler.data("spoiler-state", "blurred").css("cursor", "pointer");
         blurImage($spoiler, partialBlurImage);
-        blurText($spoiler, partialBlurText);
+        blurText($spoiler, partialBlurText, true);
       }
       e.preventDefault();
     });
