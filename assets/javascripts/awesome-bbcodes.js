@@ -313,15 +313,28 @@
     return "<details><summary>NSFW</summary><div>" + content + "</div></details>";
   });
 
-  bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
-    return "<details><summary>" + attrs["hide"] + "</summary><div>" + content + "</div></details>";
-  });
+  // The following tests whether this code is executing client-side or server-side
+  // This is necessary since we want to keep hides open in the client preview by default.
+  if(window.Discourse)
+  {
+    // client-side, keep the hide open
+    bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
+      return "<details open><summary>" + attrs["hide"] + "</summary><div>" + content + "</div></details>";
+    });
+  }else{
+    // server-side, keep it closed
+    bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
+      return "<details><summary>" + attrs["hide"] + "</summary><div>" + content + "</div></details>";
+    });
+  }
+
 
   bbTags["spoiler"] = new BBTag("spoiler", false, function (tag, content) {
     return splitLines(content, function(line){
       return "<span class='spoiler'>" + line + "</span>";
     });
   });
+
 
   var parser = new BBCodeParser(bbTags);
 
