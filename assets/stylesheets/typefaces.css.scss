@@ -1,24 +1,22 @@
 // Alpha
 @font-face{
   font-family: "MyImpact";
-  src: url('/assets/fonts/impact.ttf');
+  src: asset-url('impact.ttf');
 }
 
 // Corporate
 // No external font-face, uses Palatino.
 
 // Smartass
-
 @font-face{
   font-family: "EcritureAItaliqueOrne";
-  src: url('/assets/fonts/ecriture-a-italique-orne.otf') format('opentype');
+  src: asset-url('ecriture-a-italique-orne.otf') format('opentype');
 }
 
 // Humanism
-
 @font-face{
   font-family: "Humanism";
-  src: url('/assets/fonts/pacifico.ttf') format('opentype');
+  src: asset-url('pacifico.ttf') format('opentype');
 }
 
 
