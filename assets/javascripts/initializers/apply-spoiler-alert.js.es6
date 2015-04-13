@@ -11,12 +11,7 @@ export default {
       //not(:has(img))
       $('.spoiler', $elem).removeClass('spoiler')
                                          .addClass('spoiled')
-                                         .spoilContent();
-      // images
-      //$('.spoiler:has(img)', $elem).removeClass('spoiler')
-      //                             .addClass('spoiled')
-      //                             .wrap("<div style='display: inline-block; overflow: hidden;'></div>")
-      //                             .spoilImage();
+                                         .spoilContent($elem);
     });
   }
 };

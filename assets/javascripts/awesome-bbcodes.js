@@ -328,10 +328,11 @@
     });
   }
 
-
+  var spoilerId = 0;
   bbTags["spoiler"] = new BBTag("spoiler", false, function (tag, content) {
+    spoilerId = spoilerId + 1;
     return splitLines(content, function(line){
-      return "<span class='spoiler'>" + line + "</span>";
+      return "<span class='spoiler' data-spoiler-tag-id='" + spoilerId + "'>" + line + "</span>";
     });
   });
 
@@ -355,4 +356,5 @@
   Discourse.Markdown.whiteListTag('span', 'style');
   //typeface whitelist
   Discourse.Markdown.whiteListTag('span', 'class', '*');
+  Discourse.Markdown.whiteListTag('span', 'data-spoiler-tag-id', '*');
 })();
