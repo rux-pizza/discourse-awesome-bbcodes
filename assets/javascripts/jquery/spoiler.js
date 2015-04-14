@@ -60,53 +60,54 @@
     });
   };
 
-  var applySpoilers = function($spoiler, options) {
+  var applySpoilers = function($spoiler, options, $postElement) {
     var maxBlurText = options.maxBlurText,
         partialBlurText = options.partialBlurText,
         maxBlurImage = options.maxBlurImage,
         partialBlurImage = options.partialBlurImage;
 
-    $spoiler.data("spoiler-state", "blurred");
-
+    $spoiler.data("spoiler-state", "blurred").css("cursor", "pointer");
+    var spoilerTagIdSelector = "[data-spoiler-tag-id='" + $spoiler.data("spoiler-tag-id") + "']";
+    var $spoilerSiblings = $(spoilerTagIdSelector, $postElement);
+    var $linkedSpoiler = function(spoilerState){
+      if(typeof(spoilerState) === "undefined"){
+        return $spoilerSiblings;
+      }else{
+        return $spoilerSiblings.filter(function( index ) {
+          return $(this).data("spoiler-state") === spoilerState;
+        });
+      }
+    };
     blurImage($spoiler, maxBlurImage);
     blurText($spoiler, maxBlurText, true);
 
-    $spoiler.on("mouseover", function() {
-      $spoiler.css("cursor", "pointer");
-      if ($spoiler.data("spoiler-state") === "blurred") {
-        blurImage($spoiler, partialBlurImage);
-        blurText($spoiler, partialBlurText, true);
-      }
-    }).on("mouseout", function() {
-      if ($spoiler.data("spoiler-state") === "blurred") {
-        blurImage($spoiler, maxBlurImage);
-        blurText($spoiler, maxBlurText, true);
-      }
+    $spoiler.on("mouseenter", function() {
+      var $blurredSpoilers = $linkedSpoiler("blurred");
+      blurImage($blurredSpoilers, partialBlurImage);
+      blurText($blurredSpoilers, partialBlurText, true);
+    }).on("mouseleave", function() {
+      var $blurredSpoilers = $linkedSpoiler("blurred");
+      blurImage($blurredSpoilers, maxBlurImage);
+      blurText($blurredSpoilers, maxBlurText, true);
     }).on("click", function(e) {
-      if ($spoiler.data("spoiler-state") === "blurred") {
-        $spoiler.data("spoiler-state", "revealed").css("cursor", "auto");
-        blurImage($spoiler, 0);
-        blurText($spoiler, 0, false);
-      } else {
-        $spoiler.data("spoiler-state", "blurred").css("cursor", "pointer");
-        blurImage($spoiler, partialBlurImage);
-        blurText($spoiler, partialBlurText, true);
-      }
+      var $blurredSpoilers = $linkedSpoiler("blurred");
+      var $revealedSpoilers = $linkedSpoiler("revealed");
+      $blurredSpoilers.data("spoiler-state", "revealed").css("cursor", "auto");
+      blurImage($blurredSpoilers, 0);
+      blurText($blurredSpoilers, 0, false);
+      $revealedSpoilers.data("spoiler-state","blurred").css("cursor", "pointer");
+      blurImage($revealedSpoilers, partialBlurImage);
+      blurText($revealedSpoilers, partialBlurText, true);
       e.preventDefault();
     });
 
   };
 
-  $.fn.spoilContent = function(options) {
-    var defaults = { maxBlurText: 10, partialBlurText: 5, maxBlurImage: 20, partialBlurImage: 6 },
-        opts = $.extend(defaults, options || {});
+  $.fn.spoilContent = function($postElement) {
+    var options = { maxBlurText: 10, partialBlurText: 5, maxBlurImage: 20, partialBlurImage: 6 };
 
-/*.html(function($i, $content) {
- //return Discourse.Markdown.cook($content);
- return $content;
- }),*/
     return this.each(function() {
-      applySpoilers($(this), opts, blurText);
+      applySpoilers($(this), options, $postElement);
     });
   };
 
