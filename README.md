@@ -5,7 +5,7 @@ By default, support is provided for the following tags:
 
  - hide, nsfw
  - color
- - typefaces (humanism/corporate/smartass/alpha/rainbow)
+ - typefaces: humanism/corporate/smartass/alpha/rainbow
  - spoiler
 
 ##Usage
@@ -79,6 +79,15 @@ git pull
 ./launcher rebuild app
 ```
 
-##License
+## Credits
+
+Authors: David Montoya, Charles-Pierre Astolfi
+
+Original spoiler jQuery code from https://github.com/discourse/discourse-spoiler-alert
+Hide/NSFW polyfill and stylesheet from https://github.com/discourse/discourse-details
+Original BBCode parser code from https://github.com/svenslaggare/BBCodeParser
+
+## License
 
 MIT
+Full list of licenses available in LICENSE.md

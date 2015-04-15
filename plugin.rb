@@ -1,7 +1,7 @@
 # name: Awesome BBcodes
 # about: BBCode tags with multiline support.
-# version: 0.1
-# authors: David Montoya
+# version: 0.1.4
+# authors: David Montoya, Charles-Pierre Astolfi
 # url: https://github.com/rux-pizza/discourse-awesome-bbcodes
 
 register_asset 'javascripts/jquery/details.js'
