@@ -83,9 +83,9 @@ git pull
 
 Authors: David Montoya, Charles-Pierre Astolfi
 
-Original spoiler jQuery code from https://github.com/discourse/discourse-spoiler-alert
-Hide/NSFW polyfill and stylesheet from https://github.com/discourse/discourse-details
-Original BBCode parser code from https://github.com/svenslaggare/BBCodeParser
+ - Original spoiler jQuery code from https://github.com/discourse/discourse-spoiler-alert
+ - Hide/NSFW polyfill and stylesheet from https://github.com/discourse/discourse-details
+ - Original BBCode parser code from https://github.com/svenslaggare/BBCodeParser
 
 ## License
 
