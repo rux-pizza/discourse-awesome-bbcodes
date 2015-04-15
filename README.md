@@ -90,4 +90,5 @@ Authors: David Montoya, Charles-Pierre Astolfi
 ## License
 
 MIT
+
 Full list of licenses available in LICENSE.md
