@@ -253,6 +253,86 @@
     return this.treeToHtml(parseTree.subTrees)
   };
 
+  // check if string or number
+  var isStringy = function(arg) {
+    return typeof arg === 'string' || typeof arg === 'number';
+  };
+
+  // check if array
+  var isArray = Array.isArray || function(arg) {
+    return toString.call(arg) === '[object Array]';
+  };
+
+  var jsonMLToHtml = function(root) {
+    var html = [];
+    var stack = root;
+    while(stack.length > 0){
+      var elems = stack.pop();
+      if(isArray(elems)){
+        html.push(">");
+        html.push(elems[0]);
+        html.push("</");
+        stack.push("<");
+        stack.push(elems[0]);
+        var closed = false;
+        for (var i = 1; i < elems.length; i++) {
+          // check if argument is array
+          if (isArray(elems[i])) {
+            if(!closed){
+              stack.push(">");
+              closed = true;
+            }
+            stack.push(elems[i]);
+          // check if string or number
+          } else if (isStringy(elems[i])) {
+            if(!closed){
+              stack.push(">");
+              closed = true;
+            }
+            stack.push(elems[i]);
+          } else {
+            var attributes = elems[i];
+            closed = true;
+            for (var aKey in attributes) {
+              if(attributes.hasOwnProperty(aKey)){
+                var v = attributes[aKey];
+                stack.push(" ")
+                stack.push(aKey);
+                stack.push('="');
+                stack.push(v);
+                stack.push('"');
+              }
+            }
+            stack.push(">");
+          }
+        }
+        if(!closed){
+          stack.push(">");
+          closed = true;
+        }
+      }else{
+        html.push(elems);
+      }
+    }
+    return html.reverse().join('');
+  };
+
+  console.log(jsonMLToHtml([["person",
+    {"created":"2006-11-11T19:23",
+      "modified":"2006-12-31T23:59"},
+    ["firstName", "Robert"],
+    ["lastName", "Smith"],
+    ["address", {"type":"home"},
+      ["street", "12345 Sixth Ave"],
+      ["city", "Anytown"],
+      ["state", "CA"],
+      ["postalCode", "98765-4321"]
+    ]
+  ],[ 'div', {
+    'id' : 'mydiv',
+    'class' : 'colors borders'
+  }, [ 'p' ]]]));
+
   BBCodeParser.prototype.treeToHtml = function (subTrees) {
     var stack = [];
     var result = "";
