@@ -15,7 +15,7 @@
     if(color){
       $spoiler.css("color", "rgba(0, 0, 0, 0)");
       $("span.typefaces-tag.rainbow", $spoiler).css("background-image", "none");
-      $('span:not(.spoiler)', $spoiler).each(function(index, span){
+      $('span.color-tag', $spoiler).each(function(index, span){
         var $span = $(span);
         var spanColor = $span.css('color');
         var dataColor = $span.data('spoiler-color');
@@ -29,7 +29,7 @@
     }else{
       $spoiler.css("color", "");
       $("span.typefaces-tag.rainbow", $spoiler).css("background-image", "");
-      $('span:not(.spoiler)', $spoiler).each(function(index, span){
+      $('span.color-tag', $spoiler).each(function(index, span){
         var $span = $(span);
         var spanColor = $span.data('spoiler-color');
         if(spanColor){
