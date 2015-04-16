@@ -14,8 +14,28 @@
     }
     if(color){
       $spoiler.css("color", "rgba(0, 0, 0, 0)");
+      $("span.typefaces-tag.rainbow", $spoiler).css("background-image", "none");
+      $('span:not(.spoiler)', $spoiler).each(function(index, span){
+        var $span = $(span);
+        var spanColor = $span.css('color');
+        var dataColor = $span.data('spoiler-color');
+        if(spanColor){
+          if(typeof(dataColor) === "undefined"){
+            $span.data('spoiler-color', spanColor);
+          }
+          $span.css("color",  "rgba(0, 0, 0, 0)");
+        }
+      });
     }else{
       $spoiler.css("color", "");
+      $("span.typefaces-tag.rainbow", $spoiler).css("background-image", "");
+      $('span:not(.spoiler)', $spoiler).each(function(index, span){
+        var $span = $(span);
+        var spanColor = $span.data('spoiler-color');
+        if(spanColor){
+          $span.css("color", spanColor);
+        }
+      });
     }
   };
 
@@ -60,6 +80,24 @@
     });
   };
 
+  var spoilLinks = function($spoiler, enable){
+    if(enable){
+      $('a', $spoiler).replaceWith(function(){
+        var href = $(this).attr('href');
+        return $("<span />", {html: $(this).html()})
+          .data('spoiler-is-link', true)
+          .data('spoiler-href', href);
+      });
+    }else{
+      $('span', $spoiler).filter(function( index ) {
+        return $(this).data("spoiler-is-link");
+      }).replaceWith(function(){
+        var href = $(this).data('spoiler-href');
+        return $("<a />", {html: $(this).html()}).attr('href', href);
+      });
+    }
+  };
+
   var applySpoilers = function($spoiler, options, $postElement) {
     var maxBlurText = options.maxBlurText,
         partialBlurText = options.partialBlurText,
@@ -80,6 +118,7 @@
     };
     blurImage($spoiler, maxBlurImage);
     blurText($spoiler, maxBlurText, true);
+    spoilLinks($spoiler, true);
 
     $spoiler.on("mouseenter", function() {
       var $blurredSpoilers = $linkedSpoiler("blurred");
@@ -93,12 +132,13 @@
       var $blurredSpoilers = $linkedSpoiler("blurred");
       var $revealedSpoilers = $linkedSpoiler("revealed");
       $blurredSpoilers.data("spoiler-state", "revealed").css("cursor", "auto");
+      spoilLinks($blurredSpoilers, false);
       blurImage($blurredSpoilers, 0);
       blurText($blurredSpoilers, 0, false);
       $revealedSpoilers.data("spoiler-state","blurred").css("cursor", "pointer");
       blurImage($revealedSpoilers, partialBlurImage);
       blurText($revealedSpoilers, partialBlurText, true);
-      e.preventDefault();
+      spoilLinks($revealedSpoilers, true);
     });
 
   };
