@@ -377,45 +377,54 @@
 
   function splitLines(content, transformation){
     var result = [];
-    content.split('\n').forEach(function(line){
-      result.push(transformation(line));
-    });
+    var lines = content.split('\n');
+    if(lines.length <= 2) {
+      result.push(transformation(lines[0], true));
+      if (lines.length === 2) {
+        result.push(transformation(lines[1], true));
+      }
+    }else{
+      result.push(transformation(lines[0], true));
+      result.push(transformation(lines.slice(1,lines.length - 1).join('\n'), false));
+      result.push(transformation(lines[lines.length - 1], true));
+    }
     return result.join('\n');
   }
 
   bbTags["color"] = new BBTag("color", false, function (tag, content,attrs) {
-    return splitLines(content, function(line){
-      return '<span style="color:' + attrs["color"] + '">' + line + '</span>';
+    return splitLines(content, function(line, firstOrLast){
+      var tag = (firstOrLast? 'span':'div');
+      return '<'+tag+' class="color-tag" style="color:' + attrs["color"] + '">' + line + '</'+tag+'>';
     });
-  });
-
-  bbTags["nsfw"] = new BBTag("nsfw", false, function (tag, content) {
-    return "<details><summary>NSFW</summary><div>" + content + "</div></details>";
   });
 
   // The following tests whether this code is executing client-side or server-side
-  // This is necessary since we want to keep hides open in the client preview by default.
-  if(window.Discourse)
-  {
-    // client-side, keep the hide open
-    bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
-      return "<details open><summary>" + attrs["hide"] + "</summary><div>" + content + "</div></details>";
-    });
-  }else{
-    // server-side, keep it closed
-    bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
-      return "<details><summary>" + attrs["hide"] + "</summary><div>" + content + "</div></details>";
-    });
-  }
+  var serverSide = (typeof(window.Discourse) === "undefined");
+  var hideTag = function(title, content){
+    // This is necessary since we want to keep hides open in the client preview by default.
+    if(serverSide){
+      return "<details><summary>"+ title +"</summary><div>" + content + "</div></details>";
+    }else{
+      return "<details open><summary>"+ title +"</summary><div>" + content + "</div></details>";
+    }
+  };
+
+  bbTags["nsfw"] = new BBTag("nsfw", false, function (tag, content) {
+    return hideTag("NSFW", content);
+  });
+
+  bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
+    return hideTag( attrs["hide"] , content);
+  });
 
   var spoilerId = 0;
   bbTags["spoiler"] = new BBTag("spoiler", false, function (tag, content) {
     spoilerId = spoilerId + 1;
-    return splitLines(content, function(line){
-      return "<span class='spoiler' data-spoiler-tag-id='" + spoilerId + "'>" + line + "</span>";
+    return splitLines(content, function(line, firstOrLast){
+      var tag = (firstOrLast? 'span':'div');
+      return "<"+tag+" class='spoiler' data-spoiler-tag-id='" + spoilerId + "'>" + line + "</"+tag+">";
     });
   });
-
 
   var parser = new BBCodeParser(bbTags);
 
@@ -425,8 +434,9 @@
 
   ['smartass','corporate','humanism','alpha','rainbow'].forEach(function(typeface){
     bbTags[typeface] = new BBTag(typeface, false, function (tag, content) {
-      return splitLines(content, function(line) {
-        return '<span class="typefaces-tag ' + typeface + '">' + line + '</span>';
+      return splitLines(content, function(line, firstOrLast) {
+        var tag = (firstOrLast? 'span':'div');
+        return '<'+tag+' class="typefaces-tag ' + typeface + '">' + line + '</'+tag+'>';
       });
     });
   });
@@ -437,4 +447,7 @@
   //typeface whitelist
   Discourse.Markdown.whiteListTag('span', 'class', '*');
   Discourse.Markdown.whiteListTag('span', 'data-spoiler-tag-id', '*');
+  Discourse.Markdown.whiteListTag('div', 'style');
+  Discourse.Markdown.whiteListTag('div', 'class', '*');
+  Discourse.Markdown.whiteListTag('div', 'data-spoiler-tag-id', '*');
 })();
