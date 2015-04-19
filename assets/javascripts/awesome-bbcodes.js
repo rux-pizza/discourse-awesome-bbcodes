@@ -347,9 +347,7 @@
         b = true;
       }
     }
-    if(typeof(ele[3]) !== 'undefined'){
-      ele[3].push.apply(ele[3], result);
-    }
+    ele[3].push.apply(ele[3], result);
   };
 
   BBCodeParser.prototype.breakLine = function(subTreeStack, disableInlineSemantics, position){
@@ -369,7 +367,7 @@
       }else{
         found = true;
       }
-      if(j > 0 && ele[4]){
+      if(j > 0 && ele[4] && !ele[5]){
         // inline semantic
         var parentEle = subTreeStack[j - 1];
         var parentTree = parentEle[0][parentEle[1]];
