@@ -4,21 +4,29 @@
     "Text": 0,
     "StartTag": 1,
     "EndTag": 2,
+    "NewLine": 3,
     0: "Text",
     1: "StartTag",
-    2: "EndTag"
+    2: "EndTag",
+    3: "NewLine"
   };
 
   var TreeType = {
     "Root": 0,
     "Text": 1,
     "Tag": 2,
+    "LineBreak": 3,
     0: "Root",
     1: "Text",
-    2: "Tag"
+    2: "Tag",
+    3: "LineBreak"
   };
 
+  var tokenIdCounter = 0;
+
   var Token = function (tokenType, content, raw, tagAttributes) {
+    tokenIdCounter ++;
+    this.id = tokenIdCounter;
     this.tokenType = tokenType;
     this.content = content;
     this.tagAttributes = tagAttributes;
@@ -37,7 +45,11 @@
   };
 
   Token.prototype.asTextToken = function () {
-    return new Token(0, this.raw);
+    if(this.tokenType === TokenType.Text || this.tokenType === TokenType.NewLine){
+      return this;
+    }else{
+      return new Token(TokenType.Text, this.raw);
+    }
   };
 
   //var attrNameChars = "[a-zA-Z0-9.-_:;]";
@@ -53,7 +65,7 @@
   var attrPattern = new RegExp("(" + attrNameChars + '+)?="(' + attrValueChars + '*)"', "g");
   var quotedAttrPatternString = '(?:="' + attrValueChars + '*")?(?: ' + attrNameChars + '+="' + attrValueChars + '*")*';
   var quotedAttrPattern = new RegExp('^' + quotedAttrPatternString + '$');
-  var pattern = '\\[(/\\w*)\\]|\\[(\\w+)(|'+ quotedAttrPatternString +'|=([^\\]]*))\\]';
+  var pattern = '\\[(/\\w*)\\]|\\[(\\w+)(|'+ quotedAttrPatternString +'|=([^\\]]*))\\]|\\n';
   var tagPattern = new RegExp(pattern, "g");
 
   var Tokenizer = function (bbTags) {
@@ -65,7 +77,9 @@
   };
 
   Tokenizer.tagToken = function (match) {
-    if (typeof match[1] === 'undefined') {
+    if (match[0] === '\n'){
+      return new Token(TokenType.NewLine, match[0]);
+    }else if (typeof match[1] === 'undefined') {
       var tagName = match[2];
       var attributes = [];
       var attrStr = match[3];
@@ -87,51 +101,26 @@
           attributes[tagName] = match[4];
         }
       }
-      return new Token(1, tagName, match[0], attributes);
+      return new Token(TokenType.StartTag, tagName, match[0], attributes);
     } else {
       var content = match[1].substr(1, match[1].length - 1);
-      return new Token(2, content, "[" + match[1] + "]")
+      return new Token(TokenType.EndTag, content, "[" + match[1] + "]")
     }
   };
 
-  // Non-nested unclosed tag forces the rest of the content to be ignored.
-  // TODO: Fix the above problem
   Tokenizer.prototype.tokenizeString = function (str) {
     var tokens = this.getTokens(str);
-    var newTokens = [];
-    var noNesting = false;
-    var noNestingTag = "";
-    var noNestedTagContent = [];
-    var length = tokens.length;
-    for (var i = 0; i < length; i++) {
-      var currentToken = tokens[i];
-      var bbTag = this.bbTags[currentToken.content];
-      var addTag = true;
-      if (typeof bbTag === 'undefined' && !noNesting) {
-        currentToken = currentToken.asTextToken();
-      } else {
-        if (noNesting) {
-          if (currentToken.tokenType == 2 && currentToken.content == noNestingTag) {
-            noNesting = false;
-            newTokens.push(Tokenizer.textToken(noNestedTagContent.join('')));
-          } else {
-            currentToken = currentToken.asTextToken();
-            noNestedTagContent.push(currentToken.content);
-            addTag = false;
-          }
-        } else {
-          if (bbTag.noNesting && currentToken.tokenType == 1) {
-            noNesting = true;
-            noNestingTag = currentToken.content;
-            noNestedTagContent = [];
-          }
-        }
-      }
-      if (addTag) {
-        newTokens.push(currentToken);
-      }
-    }
-    return newTokens;
+    //var newTokens = [];
+    //var length = tokens.length;
+    //for (var i = 0; i < length; i++) {
+    //  var currentToken = tokens[i];
+    //  var bbTag = this.bbTags[currentToken.content];
+    //  if (typeof bbTag === 'undefined') {
+    //    currentToken = currentToken.asTextToken();
+    //  }
+    //  newTokens.push(currentToken);
+    //}
+    return tokens;
   };
 
   Tokenizer.prototype.getTokens = function (str) {
@@ -150,17 +139,17 @@
     if (delta2 > 0) {
       tokens.push(Tokenizer.textToken(str.substr(lastIndex, delta2)))
     }
-    return tokens
+    return tokens;
   };
 
 
-  var BBTag = function (tagName, noNesting, markupGenerator) {
+  var BBTag = function (tagName, inline, markupGenerator) {
     this.tagName = tagName;
-    this.noNesting = noNesting;
+    this.inline = inline;
     this.markupGenerator = markupGenerator;
     if (markupGenerator == undefined) {
-      this.markupGenerator = function (tag, content) {
-        return "<" + tag.tagName + ">" + content + "</" + tag.tagName + ">";
+      this.markupGenerator = function (content) {
+        return "<" + tagName + ">" + content + "</" + tagName + ">";
       }
     }
   };
@@ -173,10 +162,11 @@
     return new BBTag(tagName, false, markupGenerator);
   };
 
-  var BBCodeParseTree = function (treeType, content, attributes, subTrees) {
+  var BBCodeParseTree = function (treeType, content, attributes, subTrees, id) {
     this.treeType = treeType;
     this.content = content;
     this.attributes = attributes;
+    this.id = id;
     if (typeof subTrees === 'undefined') {
       this.subTrees = [];
     } else {
@@ -191,50 +181,69 @@
   BBCodeParseTree.buildTree = function (str, bbTags) {
     var tokenizer = new Tokenizer(bbTags);
     var tokens = tokenizer.tokenizeString(str);
-    return new BBCodeParseTree(0, str, {}, BBCodeParseTree.buildTreeFromTokens(tokens));
+    return new BBCodeParseTree(0, str, {}, BBCodeParseTree.buildTreeFromTokens(tokens, bbTags));
   };
 
-  BBCodeParseTree.buildTreeFromTokens = function (tokens) {
+  BBCodeParseTree.buildTreeFromTokens = function (tokens, bbTags) {
     var subTreeStack = [[null,[]]];
     var length = tokens.length;
+    var ele, openingToken, subTrees, parentEle, parentSubTrees, bbTag = null;
     for (var i = 0; i < length; i++) {
       var currentToken = tokens[i];
       // we build on the last element of the subtree stack
-      var ele = subTreeStack[subTreeStack.length - 1];
-      var openingToken = ele[0];
-      var subTrees = ele[1];
-      if (currentToken.tokenType == 0) {
-        subTrees.push(new BBCodeParseTree(1, currentToken.content));
-      }
-      if (currentToken.tokenType == 1) {
-        subTreeStack.push([currentToken, []]);
-      }
-      if (currentToken.tokenType == 2) {
-        if(openingToken !== null){
-          if(openingToken.content === currentToken.content){
-            subTreeStack.pop();
-            var parentEle = subTreeStack[subTreeStack.length - 1];
-            var parentSubTrees = parentEle[1];
-            parentSubTrees.push(new BBCodeParseTree(2, currentToken.content, openingToken.tagAttributes, subTrees));
+      ele = subTreeStack[subTreeStack.length - 1];
+      openingToken = ele[0];
+      subTrees = ele[1];
+      switch (currentToken.tokenType) {
+        case TokenType.Text:
+          subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.content));
+          break;
+        case TokenType.NewLine:
+          // add a LineBreak leaf, this will be useful later for splitting inline tags into multiple line spanning tags
+          subTrees.push(new BBCodeParseTree(TreeType.LineBreak, currentToken.content));
+          break;
+        case TokenType.StartTag:
+          bbTag = bbTags[currentToken.content];
+          if(typeof(bbTag) === "undefined"){
+            subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.content));
           }else{
-            subTrees.push(new BBCodeParseTree(1, currentToken.raw))
+            subTreeStack.push([currentToken, []]);
           }
-        }else{
-          subTrees.push(new BBCodeParseTree(1, currentToken.raw))
-        }
+          break;
+        case TokenType.EndTag:
+          bbTag = bbTags[currentToken.content];
+          if(typeof(bbTag) === "undefined") {
+            subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.content));
+          }else{
+            if(openingToken !== null){
+              if(openingToken.content === currentToken.content){
+                subTreeStack.pop();
+                parentEle = subTreeStack[subTreeStack.length - 1];
+                parentSubTrees = parentEle[1];
+                parentSubTrees.push(new BBCodeParseTree(TreeType.Tag, currentToken.content, openingToken.tagAttributes, subTrees, currentToken.id));
+              }else{
+                // closing-tag with non-matching opening tag. output it as raw text.
+                subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.raw))
+              }
+            }else{
+              // closing-tag with missing start-tag, output it as raw text
+              subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.raw))
+            }
+          }
+          break;
       }
     }
 
     var result = null;
 
     while(subTreeStack.length > 0){
-      var ele = subTreeStack.pop();
-      var openingToken = ele[0];
+      ele = subTreeStack.pop();
+      openingToken = ele[0];
       if(openingToken !== null){
-        var subTrees = ele[1];
-        var parentEle = subTreeStack.pop();
-        var parentSubTrees = parentEle[1];
-        parentSubTrees.push(new BBCodeParseTree(1, openingToken.raw))
+        subTrees = ele[1];
+        parentEle = subTreeStack.pop();
+        parentSubTrees = parentEle[1];
+        parentSubTrees.push(new BBCodeParseTree(1, openingToken.raw));
         parentSubTrees = parentSubTrees.concat(subTrees);
         subTreeStack.push([parentEle[0], parentSubTrees])
       }else{
@@ -248,94 +257,288 @@
     this.bbTags = bbTags
   };
 
+  // check if string or number
+  var isStringy = function(arg) {
+    return typeof arg === 'string' || typeof arg === 'number';
+  };
+
+  // check if array
+  var isArray = Array.isArray || function(arg) {
+    return toString.call(arg) === '[object Array]';
+  };
+
+  var jsonMLToHtml = function(root) {
+    var html = [];
+    var stack = root;
+    while(stack.length > 0){
+      var elems = stack.pop();
+      if(isArray(elems)){
+        var isTag = elems[0];
+        var closed = false;
+        if(isTag) {
+          html.push(">");
+          html.push(elems[0]);
+          html.push("</");
+          stack.push("<");
+          stack.push(elems[0]);
+        }else{
+          closed = true;
+        }
+        for (var i = 1; i < elems.length; i++) {
+          // check if argument is array
+          if (isArray(elems[i])) {
+            if(!closed){
+              stack.push(">");
+              closed = true;
+            }
+            stack.push(elems[i]);
+          // check if string or number
+          } else if (isStringy(elems[i])) {
+            if(!closed){
+              stack.push(">");
+              closed = true;
+            }
+            stack.push(elems[i]);
+          } else {
+            var attributes = elems[i];
+            closed = true;
+            for (var aKey in attributes) {
+              if(attributes.hasOwnProperty(aKey)){
+                var v = attributes[aKey];
+                stack.push(" ");
+                stack.push(aKey);
+                stack.push('="');
+                stack.push(v);
+                stack.push('"');
+              }
+            }
+            stack.push(">");
+          }
+        }
+        if(!closed){
+          stack.push(">");
+          closed = true;
+        }
+      }else{
+        html.push(elems);
+      }
+    }
+    return html.reverse().join('');
+  };
+
   BBCodeParser.prototype.parseString = function (content) {
     var parseTree = BBCodeParseTree.buildTree(content, this.bbTags);
-    return this.treeToHtml(parseTree.subTrees)
+    return jsonMLToHtml(this.treeToHtml(parseTree.subTrees));
+  };
+
+  BBCodeParser.prototype.flushBlock = function(subTreeStack, block){
+    // found a line-break,
+    var j = subTreeStack.length - 1;
+    var b = false;
+    var result = block;
+    for(; (j >= 0 && !b); j--) {
+      var ele = subTreeStack[j];
+      var currentTree = ele[0][ele[1]];
+      var bbTag = this.bbTags[currentTree.content];
+      if(bbTag.inline && !ele[4] && !ele[5]) {
+        result = [bbTag.markupGenerator(result, currentTree.attributes, false, currentTree.id)];
+        ele[4] = true;
+      }else {
+        b = true;
+      }
+    }
+    if(typeof(ele[3]) !== 'undefined'){
+      ele[3].push.apply(ele[3], result);
+    }
+  };
+
+  BBCodeParser.prototype.breakLine = function(subTreeStack, disableInlineSemantics, position){
+    // found a line-break,
+    var j = (typeof(position) === "undefined")?subTreeStack.length - 1:position;
+    var b = false;
+    var found = false;
+    var lastInline = null;
+    for(; (j >= 0 && !b); j--) {
+      var ele = subTreeStack[j];
+      if (!found && ele[3].length === 0){
+        ele[5] = true;
+        if(ele[4]){
+          lastInline = j;
+        }
+        ele[4] = false;
+      }else{
+        found = true;
+      }
+      if(j > 0 && ele[4]){
+        // inline semantic
+        var parentEle = subTreeStack[j - 1];
+        var parentTree = parentEle[0][parentEle[1]];
+        //assert(parentTree.treeType === TreeType.Tag)
+        // parentTree is an inline-tag and inline semantics are being enforced
+        // push into current line of parent
+        var bbTag = this.bbTags[parentTree.content];
+        parentEle[3].push(
+          bbTag.markupGenerator(ele[3], parentTree.attributes, true, parentTree.id)
+        );
+        ele[3] = [];
+        if(disableInlineSemantics){
+          ele[4] = false;
+        }
+      }else{
+        b = true;
+      }
+    }
+    if(!disableInlineSemantics && lastInline !== null){
+      this.breakLine(subTreeStack, true, lastInline - 1);
+    }
   };
 
   BBCodeParser.prototype.treeToHtml = function (subTrees) {
     var stack = [];
-    var result = "";
+    var result = [[],[""]];
     if(subTrees.length > 0){
-      stack.push([subTrees, 0, false, []]);
+      // subtrees, subTree index, has current-tag been opened?, jsonML sequence, inline semantic
+      stack.push([subTrees, 0, false, [""], false, false]);
     }
     while(stack.length > 0 ){
-      var ele = stack.pop();
+      var ele = stack[stack.length - 1];
       var currentSubTrees = ele[0];
       var currentIndex = ele[1];
       var open = ele[2];
-      var html = ele[3];
+      var jsonML = ele[3];
       var currentTree = currentSubTrees[currentIndex];
       var last = currentIndex === currentSubTrees.length - 1;
-      if (currentTree.treeType == 1) {
-        var textContent = currentTree.content;
-        html.push(textContent)
-      } else {
-        if(open){
+      switch(currentTree.treeType){
+        case TreeType.Text:
+          stack.pop();
+          jsonML.push(currentTree.content);
+          break;
+        case TreeType.LineBreak:
+          this.breakLine(stack, false);
+          jsonML = ele[3];
+          jsonML.push(currentTree.content);
+          stack.pop();
+          break;
+        default:
           var bbTag = this.bbTags[currentTree.content];
-          html.push(bbTag.markupGenerator(bbTag, result, currentTree.attributes));
-        }else{
-          stack.push([currentSubTrees, currentIndex, true, html]);
-          result = "";
-          if(currentTree.subTrees.length > 0){
-            stack.push([currentTree.subTrees, 0, false, []]);
+          if(open){
+            stack.pop();
+            if(result[1]){
+              if(result[0].length > 0){
+                jsonML.push(bbTag.markupGenerator(result[0], currentTree.attributes, true, currentTree.id));
+              }
+            }else{
+              var block = [bbTag.markupGenerator(result[0], currentTree.attributes, false, currentTree.id)];
+              if(stack.length === 0){
+                jsonML.push.apply(jsonML,block)
+              }else{
+                this.flushBlock(stack, block);
+              }
+              jsonML = ele[3];
+            }
+          }else{
+            stack.pop();
+            if(!bbTag.inline){
+              this.breakLine(stack, true);
+              jsonML = ele[3];
+            }
+            stack.push([currentSubTrees, currentIndex, true, jsonML, ele[4], ele[5]]);
+            result = null;
+            if(currentTree.subTrees.length > 0){
+              stack.push([currentTree.subTrees, 0, false, [], bbTag.inline, false]);
+            }
           }
-        }
+          break;
       }
-      if(currentTree.treeType == 1 || open ) {
+      if(currentTree.treeType !== TreeType.Tag || open ) {
         if(last){
-          result = html.join('');
+          result = [jsonML, ele[4]];
         }else{
-          stack.push([currentSubTrees, currentIndex + 1, false, html]);
+          stack.push([currentSubTrees, currentIndex + 1, false, jsonML, ele[4], ele[5]]);
         }
       }
     }
-    return result;
+    return result[0];
   };
 
   var bbTags = {};
 
-  function splitLines(content, transformation){
-    var result = [];
-    content.split('\n').forEach(function(line){
-      result.push(transformation(line));
-    });
-    return result.join('\n');
-  }
+  var defineBBCode = function(tag, inline, emitter){
+    bbTags[tag] = new BBTag(tag, inline, emitter);
+  };
 
-  bbTags["color"] = new BBTag("color", false, function (tag, content,attrs) {
-    return splitLines(content, function(line){
-      return '<span class="color-tag" style="color:' + attrs["color"] + '">' + line + '</span>';
-    });
+  defineBBCode("color", true, function (content, attrs, inline) {
+    return [(inline? 'span':'div'), {
+      "class": 'color-tag',
+      "style": 'color:' + attrs["color"]
+    }].concat(content);
   });
 
   // The following tests whether this code is executing client-side or server-side
   var serverSide = (typeof(window.Discourse) === "undefined");
   var hideTag = function(title, content){
     // This is necessary since we want to keep hides open in the client preview by default.
-    if(serverSide){
-      return "<details><summary>"+ title +"</summary><div>" + content + "</div></details>";
+    if(serverSide) {
+      return ['details', ['summary', title], ['div'].concat(content)];
     }else{
-      return "<details open><summary>"+ title +"</summary><div>" + content + "</div></details>";
-    }
-  }
+      return ['details', {"open": ''}, ['summary', title], ['div'].concat(content)];
 
-  bbTags["nsfw"] = new BBTag("nsfw", false, function (tag, content) {
+    }
+  };
+
+  defineBBCode("nsfw", false, function (content) {
     return hideTag("NSFW", content);
   });
 
-  bbTags["hide"] = new BBTag("hide", false, function (tag, content, attrs) {
+  defineBBCode("hide", false, function (content, attrs) {
     return hideTag( attrs["hide"] , content);
   });
 
-  var spoilerId = 0;
-  bbTags["spoiler"] = new BBTag("spoiler", false, function (tag, content) {
-    spoilerId = spoilerId + 1;
-    return splitLines(content, function(line){
-      return "<span class='spoiler' data-spoiler-tag-id='" + spoilerId + "'>" + line + "</span>";
+  defineBBCode("spoiler", true, function (content, attributes, inline, id) {
+    return [(inline? 'span':'div'), {
+      "class": 'spoiler',
+      "data-spoiler-tag-id": id
+    }].concat(content);
+  });
+
+  ['smartass','corporate','humanism','alpha','rainbow'].forEach(function(typeface){
+    var classTag = 'typefaces-tag ' + typeface;
+    defineBBCode(typeface, true, function (content, attributes, inline) {
+      return [(inline? 'span':'div'), {
+        "class": classTag
+      }].concat(content);
     });
   });
 
+  var discourseBBCode = function(tag, inline){
+    var start = "[" + tag + "]";
+    var end = "[/" + tag + "]";
+    defineBBCode(tag, inline, function(content){
+      var l = ["",start].concat(content);
+      l.push(end);
+      return l;
+    });
+  };
+
+  // Discourse BBCodes that can be mixed with our custom BBCodes
+  defineBBCode("b", true, function(content, attributes, inline){
+    return [(inline? 'span':'div'), {'class': 'bbcode-b'}].concat(content);
+  });
+  defineBBCode("i", true, function(content, attributes, inline){
+    return [(inline? 'span':'div'), {'class': 'bbcode-i'}].concat(content);
+  });
+  defineBBCode("u", true, function(content, attributes, inline){
+    return [(inline? 'span':'div'), {'class': 'bbcode-u'}].concat(content);
+  });
+  defineBBCode("s", true, function(content, attributes, inline){
+    return [(inline? 'span':'div'), {'class': 'bbcode-s'}].concat(content);
+  });
+  defineBBCode("size", true, function(content, attributes, inline){
+    return [(inline? 'span':'div'), {'class': "bbcode-size-" + (parseInt(attributes["size"], 10) || 1)}].concat(content);
+  });
+  discourseBBCode("ul", false);
+  discourseBBCode("ol", false);
+  discourseBBCode("li", false);
 
   var parser = new BBCodeParser(bbTags);
 
@@ -343,18 +546,13 @@
     return parser.parseString(text);
   }
 
-  ['smartass','corporate','humanism','alpha','rainbow'].forEach(function(typeface){
-    bbTags[typeface] = new BBTag(typeface, false, function (tag, content) {
-      return splitLines(content, function(line) {
-        return '<span class="typefaces-tag ' + typeface + '">' + line + '</span>';
-      });
-    });
-  });
-
   Discourse.Dialect.addPreProcessor(replaceBBCodes);
   //color whitelist
   Discourse.Markdown.whiteListTag('span', 'style');
   //typeface whitelist
   Discourse.Markdown.whiteListTag('span', 'class', '*');
   Discourse.Markdown.whiteListTag('span', 'data-spoiler-tag-id', '*');
+  Discourse.Markdown.whiteListTag('div', 'style');
+  Discourse.Markdown.whiteListTag('div', 'class', '*');
+  Discourse.Markdown.whiteListTag('div', 'data-spoiler-tag-id', '*');
 })();

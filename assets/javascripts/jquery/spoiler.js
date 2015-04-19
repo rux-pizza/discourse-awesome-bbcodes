@@ -14,26 +14,26 @@
     }
     if(color){
       $spoiler.css("color", "rgba(0, 0, 0, 0)");
-      $("span.typefaces-tag.rainbow", $spoiler).css("background-image", "none");
-      $('span.color-tag', $spoiler).each(function(index, span){
-        var $span = $(span);
-        var spanColor = $span.css('color');
-        var dataColor = $span.data('spoiler-color');
-        if(spanColor){
+      $(".typefaces-tag.rainbow", $spoiler).css("background-image", "none");
+      $('.color-tag', $spoiler).each(function(index, ele){
+        var $ele = $(ele);
+        var eleColor = $ele.css('color');
+        var dataColor = $ele.data('spoiler-color');
+        if(eleColor){
           if(typeof(dataColor) === "undefined"){
-            $span.data('spoiler-color', spanColor);
+            $ele.data('spoiler-color', eleColor);
           }
-          $span.css("color",  "rgba(0, 0, 0, 0)");
+          $ele.css("color",  "rgba(0, 0, 0, 0)");
         }
       });
     }else{
       $spoiler.css("color", "");
-      $("span.typefaces-tag.rainbow", $spoiler).css("background-image", "");
-      $('span.color-tag', $spoiler).each(function(index, span){
-        var $span = $(span);
-        var spanColor = $span.data('spoiler-color');
-        if(spanColor){
-          $span.css("color", spanColor);
+      $(".typefaces-tag.rainbow", $spoiler).css("background-image", "");
+      $('.color-tag', $spoiler).each(function(index, ele){
+        var $ele = $(ele);
+        var eleColor = $ele.data('spoiler-color');
+        if(eleColor){
+          $ele.css("color", eleColor);
         }
       });
     }
