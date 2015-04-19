@@ -427,7 +427,7 @@
               }
             }else{
               var block = [bbTag.markupGenerator(result[0], currentTree.attributes, false, currentTree.id)];
-              if(stack.length === 0){
+              if(stack.length === 0 || (!ele[4])){
                 jsonML.push.apply(jsonML,block)
               }else{
                 this.flushBlock(stack, block);
