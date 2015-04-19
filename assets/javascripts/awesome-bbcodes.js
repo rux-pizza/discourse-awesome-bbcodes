@@ -443,7 +443,7 @@
               jsonML = ele[3];
             }
             stack.push([currentSubTrees, currentIndex, true, jsonML, ele[4], ele[5]]);
-            result = null;
+            result = [[],bbTag.inline];
             if(currentTree.subTrees.length > 0){
               stack.push([currentTree.subTrees, 0, false, [], bbTag.inline, false]);
             }
