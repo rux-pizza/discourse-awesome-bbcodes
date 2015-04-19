@@ -44,14 +44,6 @@
     return this.tokenType == token.tokenType && this.content == token.content;
   };
 
-  Token.prototype.asTextToken = function () {
-    if(this.tokenType === TokenType.Text || this.tokenType === TokenType.NewLine){
-      return this;
-    }else{
-      return new Token(TokenType.Text, this.raw);
-    }
-  };
-
   //var attrNameChars = "[a-zA-Z0-9.-_:;]";
   //var unquotedAttrValueChars = '\\w';
   //var attrValueChars = '[^"]';
@@ -205,7 +197,7 @@
         case TokenType.StartTag:
           bbTag = bbTags[currentToken.content];
           if(typeof(bbTag) === "undefined"){
-            subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.content));
+            subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.raw));
           }else{
             subTreeStack.push([currentToken, []]);
           }
@@ -213,7 +205,7 @@
         case TokenType.EndTag:
           bbTag = bbTags[currentToken.content];
           if(typeof(bbTag) === "undefined") {
-            subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.content));
+            subTrees.push(new BBCodeParseTree(TreeType.Text, currentToken.raw));
           }else{
             if(openingToken !== null){
               if(openingToken.content === currentToken.content){
