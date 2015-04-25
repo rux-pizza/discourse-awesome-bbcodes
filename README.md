@@ -3,12 +3,16 @@
 A Discourse Plugin to support BBCode tags spawning across multiple lines.
 By default, support is provided for the following tags:
 
- - hide, nsfw
- - color
- - typefaces: humanism/corporate/smartass/alpha/rainbow
- - spoiler
+ - `[hide=]`, `[nsfw]`
+ - `[color=]`
+ - typefaces: `[humanism],`[corporate]`,`[smartass],`[alpha],`[rainbow]`
+ - `[spoiler]`
+ 
+It also features adds auto-complete to the composer for these tags.
 
 ##Usage
+
+By pressing `[` into the composer, the auto-complete dropdown kicks in to let you choose the tag you want.
 
 ###Spoiler
 
@@ -19,6 +23,13 @@ For example:
    I watched the murder mystery on TV last night. [spoiler]The butler did it[/spoiler].
 ```
 
+For images, make sure to add a line-break after the opening tag, this activates block semantics and prevents the light-box post-processor that runs server-side to break your spoiler.
+
+```
+   I watched the murder mystery on TV last night. [spoiler]
+   <img src="murder.jpg">
+   [/spoiler].
+```
 
 ###Hide/NSFW
 
