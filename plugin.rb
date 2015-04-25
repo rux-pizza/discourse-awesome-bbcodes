@@ -1,4 +1,4 @@
-# name: Awesome BBcodes
+# name: discourse-awesome-bbcodes
 # about: BBCode tags with multiline support.
 # version: 0.2.4
 # authors: David Montoya, Charles-Pierre Astolfi
