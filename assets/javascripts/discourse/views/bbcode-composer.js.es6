@@ -1,6 +1,5 @@
 import ComposerView from 'discourse/views/composer'
 
-import AutocompleteTag from 'discourse/plugins/discourse-awesome-bbcodes/jquery/autocomplete-tag';
 
 const bbCodeList = ["alpha", "color=", "corporate", "humanism", "hide=", "nsfw", "rainbow", "smartass", "spoiler"];
 
@@ -38,9 +37,8 @@ const searchBBCodes = function(term, options) {
 export default ComposerView.reopen({
   initEditor(){
     this._super();
-    $.fn.autocompleteTag = AutocompleteTag;
+
     const template = this.container.lookup('template:javascripts/discourse-awesome-bbcodes/templates/bbcode-autocomplete.raw');
-    console.log(template);
     $('#wmd-input').autocompleteTag({
       template: template,
       key: "[",
