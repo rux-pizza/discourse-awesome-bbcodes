@@ -1,6 +1,6 @@
 #discourse-awesome-bbcodes
 
-A Discourse Plugin to support BBCode tags spawning across multiple lines.
+A Discourse Plugin to support nestable BBCode tags spawning across multiple paragraphs in your posts.
 By default, support is provided for the following tags:
 
  - `[hide=]`, `[nsfw]`
@@ -12,7 +12,24 @@ It also features adds auto-complete to the composer for these tags.
 
 ##Usage
 
-By pressing `[` into the composer, the auto-complete dropdown kicks in to let you choose the tag you want.
+By pressing `[` into the composer, the auto-complete dropdown kicks in to let you choose the tag you want. BBCodes have two modes: **block** and **inline**.
+
+* **block**: puts its content in a new `<div>` block.
+* **inline**: puts the first line of its content within the current the line, and each new line in its own nestable `<span>` tag.
+
+By default, `hide` and `nsfw` have **block** semantics. The other tags have **inline** semantics by default, unless a line-break is added after the opening tag:
+```
+Hey [color=red]
+dude!
+[/color]
+```
+
+If nesting multiple tags with no space in between the opening tags and a line-break after the last opening tag, all the tags will use **block** semantics:
+```
+Hey [humanism][color=red]
+dude!
+[/color][/humanism]
+```
 
 ###Spoiler
 
@@ -31,9 +48,11 @@ For images, make sure to add a line-break after the opening tag, this activates 
    [/spoiler].
 ```
 
+Spoiler is an improved version over the original discourse-spoiler-alert plugin, in that it spoils links and colored text correctly, but it also spoils multiline content.
+
 ###Hide/NSFW
 
-In your posts, surround text with `[hide=...]` and `[/hide]` or with `[nsfw]` and `[/nsfw]`
+In your posts, surround text with `[hide=some title]` and `[/hide]` or with `[nsfw]` and `[/nsfw]`
 
 ```
 The author explains this in great detail in section 7.
@@ -89,6 +108,17 @@ cd /var/docker
 git pull
 ./launcher rebuild app
 ```
+
+## Known issues
+
+- Images within spoilers do not really work unless `spoiler` is in **block** mode. To start a `spoiler` in **block** mode, simply add a line break after the opening tag:
+```
+[spoiler]
+<img src="some-image.jpg>
+[/spoiler]
+```
+Inside the preview, an image within a inline spoiler might appear to work at first. When posted, the spoiler will break due to the light-box postprocessing done by the server. Due to the way the plugin works at the moment, this is an issue that is hard to solve.
+- `spoiler` rendering might be slower than with the original spoiler-alert plugin. For now, this is because our `spoiler` is much more functional: it spoils links and colored text correctly, and not much optimization has been done. The performance might improve in the future.
 
 ## Credits
 
