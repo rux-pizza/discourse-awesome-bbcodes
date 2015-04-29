@@ -5,7 +5,7 @@ By default, support is provided for the following tags:
 
  - `[hide=]`, `[nsfw]`
  - `[color=]`
- - typefaces: `[humanism],`[corporate]`,`[smartass],`[alpha],`[rainbow]`
+ - typefaces: `[humanism]`,`[corporate]`,`[smartass]`,`[alpha]`,`[rainbow]`
  - `[spoiler]`
  
 It also features adds auto-complete to the composer for these tags.
@@ -119,6 +119,7 @@ git pull
 ```
 Inside the preview, an image within a inline spoiler might appear to work at first. When posted, the spoiler will break due to the light-box postprocessing done by the server. Due to the way the plugin works at the moment, this is an issue that is hard to solve.
 - `spoiler` rendering might be slower than with the original spoiler-alert plugin. For now, this is because our `spoiler` is much more functional: it spoils links and colored text correctly, and not much optimization has been done. The performance might improve in the future.
+- At the moment, BBCodes within triple code ticks are processed as if they were regular text.
 
 ## Credits
 
