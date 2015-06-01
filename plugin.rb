@@ -1,6 +1,6 @@
 # name: discourse-awesome-bbcodes
 # about: BBCode tags with multiline support.
-# version: 0.3.0
+# version: 0.3.1
 # authors: David Montoya, Charles-Pierre Astolfi
 # url: https://github.com/rux-pizza/discourse-awesome-bbcodes
 
