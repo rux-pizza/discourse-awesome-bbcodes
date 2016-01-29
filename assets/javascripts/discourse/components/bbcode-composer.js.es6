@@ -1,4 +1,4 @@
-import ComposerView from 'discourse/views/composer'
+import Editor from 'discourse/components/d-editor'
 
 
 const bbCodeList = ["alpha", "color=", "corporate", "humanism", "hide=", "nsfw", "rainbow", "smartass", "spoiler"];
@@ -34,12 +34,13 @@ const searchBBCodes = function(term, options) {
   return results;
 };
 
-export default ComposerView.reopen({
-  initEditor(){
-    this._super();
+export default Editor.reopen({
+  _applyBBCodesAutocomplete: function(){
+    const container = this.get('container'),
+      $editorInput = this.$('.d-editor-input');
 
     const template = this.container.lookup('template:javascripts/discourse-awesome-bbcodes/templates/bbcode-autocomplete.raw');
-    $('#wmd-input').autocompleteTag({
+    $editorInput.autocompleteTag({
       template: template,
       key: "[",
       transformComplete(v) {
@@ -69,5 +70,6 @@ export default ComposerView.reopen({
           });
       }
     });
-  }
+  }.on('didInsertElement')
+
 });
