@@ -10,6 +10,8 @@ By default, support is provided for the following tags:
  
 It also features adds auto-complete to the composer for these tags.
 
+Compatible with Discourse v1.5.0.beta13 or greater uses Plugin-API 0.1.
+
 ##Usage
 
 By pressing `[` into the composer, the auto-complete dropdown kicks in to let you choose the tag you want. BBCodes have two modes: **block** and **inline**.
