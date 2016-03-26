@@ -1,6 +1,13 @@
 var isIE = /*@cc_on!@*/false || document.documentMode,
     globalIdCounter = 0;
 
+// handle lazyYT onebox
+function blurLazyYT($spoiler) {
+  $("div.lazyYT", $spoiler).each(function(index) {
+    $(this).replaceWith("<p>https://youtube.com/watch?v=" + $(this).data('youtube-id') + "</p>");
+  });
+}
+
 var blurText = function($spoiler, radius, color) {
   var textShadow = "gray 0 0 " + radius + "px";
   if (isIE) { textShadow = radius <= 0 ? "0 0 0 0 gray" : "0 0 " + radius + "px .1px gray"; }
@@ -37,23 +44,24 @@ var blurText = function($spoiler, radius, color) {
   }
 };
 
-var blurImage = function($spoiler, radius) {
+
+function blurImage($spoiler, radius) {
   // on the first pass, transform images into SVG
-  //
   $("img", $spoiler).each(function(index, image) {
+    var isEmoji = $(this).hasClass('emoji');
     var transform = function() {
-      var w = image.width,
-          h = image.height,
-          id = ++globalIdCounter;
+      var w = isEmoji ? 20 : image.width,
+        h = isEmoji ? 20 : image.height,
+        id = ++globalIdCounter;
       var minimum = Math.min(w,h)/3;
       var adjustedRadius = radius;
       if(radius >= minimum) {
         adjustedRadius = minimum;
       }
       var svg = "<svg data-spoiler-id='" + id + "' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='" + w + "' height='" + h + "'>" +
-                "<defs><filter id='blur-" + id + "'><feGaussianBlur id='gaussian-" + id + "' stdDeviation='" + adjustedRadius + "'></feGaussianBlur></filter></defs>" +
-                "<image xlink:href='" + image.src + "' filter='url(#blur-" + id + ")' width='" + w + "' height='" + h + "'></image>" +
-                "</svg>";
+        "<defs><filter id='blur-" + id + "'><feGaussianBlur id='gaussian-" + id + "' stdDeviation='" + adjustedRadius + "'></feGaussianBlur></filter></defs>" +
+        "<image xlink:href='" + image.src + "' filter='url(#blur-" + id + ")' style='filter: url(#blur-" + id + ")' width='" + w + "' height='" + h + "'></image>" +
+        "</svg>";
       $(image).replaceWith(svg);
     };
     // do we need to wait for the image to load?
@@ -74,8 +82,10 @@ var blurImage = function($spoiler, radius) {
     if(radius >= minimum){
       adjustedRadius = minimum;
     }
-    svg.getElementById("gaussian-" + id).setAttribute("stdDeviation", adjustedRadius);
+    var element = svg.getElementById("gaussian-" + id);
+    if (element) { element.setAttribute("stdDeviation", adjustedRadius); }
   });
+
 };
 
 var spoilLinks = function($spoiler, enable){
@@ -114,6 +124,7 @@ var applySpoilers = function($spoiler, options, $postElement) {
       });
     }
   };
+  blurLazyYT($spoiler);
   blurImage($spoiler, maxBlurImage);
   blurText($spoiler, maxBlurText, true);
   spoilLinks($spoiler, true);
