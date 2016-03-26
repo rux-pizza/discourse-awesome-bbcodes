@@ -1,6 +1,6 @@
 # name: discourse-awesome-bbcodes
 # about: BBCode tags with multiline support.
-# version: 0.3.2
+# version: 0.4.0
 # authors: David Montoya, Charles-Pierre Astolfi
 # url: https://github.com/rux-pizza/discourse-awesome-bbcodes
 
@@ -21,5 +21,3 @@ Rails.configuration.assets.paths << File.join(plugin_path, "assets", "fonts")
 Dir.glob("#{plugin_path}/assets/fonts/*").each do |path|
   Rails.configuration.assets.precompile << path
 end
-
-
