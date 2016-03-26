@@ -21,7 +21,9 @@ export default
     if(siteSettings.awesome_bbcodes_color_enabled){
       bbCodeList.push("color=");
     }
-    bbCodeList = bbCodeList.concat(siteSettings.awesome_bbcodes_typefaces_list.split("|")).sort();
+
+    const typefacesList = (siteSettings.awesome_bbcodes_typefaces_list.length === 0)?[]:siteSettings.awesome_bbcodes_typefaces_list.split("|");
+    bbCodeList = bbCodeList.concat(typefacesList).sort();
 
     if(bbCodeList.length > 0){
       initializeBBCodeComposer(bbCodeList, autocompleteTag);

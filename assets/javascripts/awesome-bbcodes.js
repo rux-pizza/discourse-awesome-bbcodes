@@ -463,7 +463,7 @@
     const nsfwEnabled = Discourse.SiteSettings.awesome_bbcodes_nsfw_enabled;
     const hideEnabled = Discourse.SiteSettings.awesome_bbcodes_hide_enabled;
     const colorEnabled = Discourse.SiteSettings.awesome_bbcodes_color_enabled;
-    const typefacesList = Discourse.SiteSettings.awesome_bbcodes_typefaces_list;
+    const typefacesList = (Discourse.SiteSettings.awesome_bbcodes_typefaces_list.length === 0)?[]:Discourse.SiteSettings.awesome_bbcodes_typefaces_list.split("|");
     // The following tests whether this code is executing client-side or server-side
     var serverSide = (typeof(window.Discourse) === "undefined");
 
