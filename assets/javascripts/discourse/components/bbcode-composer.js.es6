@@ -1,13 +1,8 @@
 import Editor from 'discourse/components/d-editor'
 
-
-const bbCodeList = ["alpha", "color=", "corporate", "humanism", "hide=", "nsfw", "rainbow", "smartass", "spoiler"];
-
-const searchBBCodes = function(term, options) {
+const searchBBCodes = function(term, toSearch, options) {
   var maxResults = (options && options["maxResults"]) || -1;
   if (maxResults === 0) { return []; }
-
-  var toSearch = bbCodeList;
 
   var i, results = [];
 
@@ -34,42 +29,43 @@ const searchBBCodes = function(term, options) {
   return results;
 };
 
-export default Editor.reopen({
-  _applyBBCodesAutocomplete: function(){
-    const container = this.get('container'),
-      $editorInput = this.$('.d-editor-input');
+export default function(bbCodeList, autocompleteTag){
+  Editor.reopen({
+    _applyBBCodesAutocomplete: function () {
+      const container = this.get('container'),
+        $editorInput = this.$('.d-editor-input');
 
-    const template = this.container.lookup('template:javascripts/discourse-awesome-bbcodes/templates/bbcode-autocomplete.raw');
-    $editorInput.autocompleteTag({
-      template: template,
-      key: "[",
-      transformComplete(v) {
-        if(v.code.indexOf('=', v.code.length - 1) !== -1){
-          return {
-            text: v.code + "]" + "[/" + v.code.substring(0, v.code.length - 1) + "]",
-            caretPosition: v.code.length + 1
+      const template = this.container.lookup('template:javascripts/discourse-awesome-bbcodes/templates/bbcode-autocomplete.raw');
+      autocompleteTag.call($editorInput, {
+        template: template,
+        key: "[",
+        transformComplete(v) {
+          if (v.code.indexOf('=', v.code.length - 1) !== -1) {
+            return {
+              text: v.code + "]" + "[/" + v.code.substring(0, v.code.length - 1) + "]",
+              caretPosition: v.code.length + 1
+            }
+          } else {
+            return {
+              text: v.code + "]" + "[/" + v.code + "]",
+              caretPosition: v.code.length + 2
+            }
           }
-        }else{
-          return {
-            text: v.code + "]" + "[/" + v.code + "]",
-            caretPosition: v.code.length + 2
-          }
-        }
-      },
-      dataSource(term){
-        return new Ember.RSVP.Promise(function(resolve) {
-          term = term.toLowerCase();
+        },
+        dataSource(term) {
+          return new Ember.RSVP.Promise(function (resolve) {
+            term = term.toLowerCase();
 
-          const options = searchBBCodes(term, {maxResults: 10});
+            const options = searchBBCodes(term, bbCodeList, {maxResults: 10});
 
-          return resolve(options);
-        }).then(function(list) {
-            return list.map(function(i) {
-              return {code: i};
+            return resolve(options);
+          }).then(function (list) {
+              return list.map(function (i) {
+                return {code: i};
+              });
             });
-          });
-      }
-    });
-  }.on('didInsertElement')
-
-});
+        }
+      });
+    }.on('didInsertElement')
+  });
+}

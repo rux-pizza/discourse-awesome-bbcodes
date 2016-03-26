@@ -457,92 +457,118 @@
     bbTags[tag] = new BBTag(tag, inline, emitter);
   };
 
-  defineBBCode("color", true, function (content, attrs, inline) {
-    return [(inline? 'span':'div'), {
-      "class": 'color-tag',
-      "style": 'color:' + attrs["color"]
-    }].concat(content);
-  });
+  var init = function(){
 
-  // The following tests whether this code is executing client-side or server-side
-  var serverSide = (typeof(window.Discourse) === "undefined");
-  var hideTag = function(title, content){
-    // This is necessary since we want to keep hides open in the client preview by default.
-    if(serverSide) {
-      return ['details', ['summary', title], ['div'].concat(content)];
-    }else{
-      return ['details', {"open": ''}, ['summary', title], ['div'].concat(content)];
+    const spoilerEnabled = Discourse.SiteSettings.awesome_bbcodes_spoiler_enabled;
+    const nsfwEnabled = Discourse.SiteSettings.awesome_bbcodes_nsfw_enabled;
+    const hideEnabled = Discourse.SiteSettings.awesome_bbcodes_hide_enabled;
+    const colorEnabled = Discourse.SiteSettings.awesome_bbcodes_color_enabled;
+    const typefacesList = (Discourse.SiteSettings.awesome_bbcodes_typefaces_list.length === 0)?[]:Discourse.SiteSettings.awesome_bbcodes_typefaces_list.split("|");
+    // The following tests whether this code is executing client-side or server-side
+    var serverSide = (typeof(window.Discourse) === "undefined");
 
+    if(!spoilerEnabled && !nsfwEnabled && !hideEnabled && !colorEnabled && typefacesList.length === 0) { return; }
+
+    if(colorEnabled){
+      defineBBCode("color", true, function (content, attrs, inline) {
+        return [(inline? 'span':'div'), {
+          "class": 'color-tag',
+          "style": 'color:' + attrs["color"]
+        }].concat(content);
+      });
     }
+
+    var hideTag = function(title, content){
+      // This is necessary since we want to keep hides open in the client preview by default.
+      if(serverSide) {
+        return ['details', ['summary', title], ['div'].concat(content)];
+      }else{
+        return ['details', {"open": ''}, ['summary', title], ['div'].concat(content)];
+
+      }
+    };
+
+
+    if(nsfwEnabled){
+      defineBBCode("nsfw", false, function (content) {
+        return hideTag("NSFW", content);
+      });
+    }
+
+    if(hideEnabled){
+      defineBBCode("hide", false, function (content, attrs) {
+        return hideTag( attrs["hide"] , content);
+      });
+    }
+
+    if(spoilerEnabled){
+      defineBBCode("spoiler", true, function (content, attributes, inline, id) {
+        return [(inline? 'span':'div'), {
+          "class": 'spoiler',
+          "data-spoiler-tag-id": id
+        }].concat(content);
+      });
+    }
+    typefacesList.split("|").forEach(function(typeface){
+      var classTag = 'typefaces-tag ' + typeface;
+      defineBBCode(typeface, true, function (content, attributes, inline) {
+        return [(inline? 'span':'div'), {
+          "class": classTag
+        }].concat(content);
+      });
+    });
+
+    var discourseBBCode = function(tag, inline){
+      var start = "[" + tag + "]";
+      var end = "[/" + tag + "]";
+      defineBBCode(tag, inline, function(content){
+        var l = ["",start].concat(content);
+        l.push(end);
+        return l;
+      });
+    };
+
+    // Discourse BBCodes that can be mixed with our custom BBCodes
+    defineBBCode("b", true, function(content, attributes, inline){
+      return [(inline? 'span':'div'), {'class': 'bbcode-b'}].concat(content);
+    });
+    defineBBCode("i", true, function(content, attributes, inline){
+      return [(inline? 'span':'div'), {'class': 'bbcode-i'}].concat(content);
+    });
+    defineBBCode("u", true, function(content, attributes, inline){
+      return [(inline? 'span':'div'), {'class': 'bbcode-u'}].concat(content);
+    });
+    defineBBCode("s", true, function(content, attributes, inline){
+      return [(inline? 'span':'div'), {'class': 'bbcode-s'}].concat(content);
+    });
+    defineBBCode("size", true, function(content, attributes, inline){
+      return [(inline? 'span':'div'), {'class': "bbcode-size-" + (parseInt(attributes["size"], 10) || 1)}].concat(content);
+    });
+    discourseBBCode("ul", false);
+    discourseBBCode("ol", false);
+    discourseBBCode("li", false);
+
+    var parser = new BBCodeParser(bbTags);
+
+    function replaceBBCodes(text) {
+      return parser.parseString(text);
+    }
+
+    Discourse.Dialect.addPreProcessor(replaceBBCodes);
+    //color whitelist
+    Discourse.Markdown.whiteListTag('span', 'style');
+    //typeface whitelist
+    Discourse.Markdown.whiteListTag('span', 'class', '*');
+    Discourse.Markdown.whiteListTag('span', 'data-spoiler-tag-id', '*');
+    Discourse.Markdown.whiteListTag('div', 'style');
+    Discourse.Markdown.whiteListTag('div', 'class', '*');
+    Discourse.Markdown.whiteListTag('div', 'data-spoiler-tag-id', '*');
+
   };
 
-  defineBBCode("nsfw", false, function (content) {
-    return hideTag("NSFW", content);
-  });
-
-  defineBBCode("hide", false, function (content, attrs) {
-    return hideTag( attrs["hide"] , content);
-  });
-
-  defineBBCode("spoiler", true, function (content, attributes, inline, id) {
-    return [(inline? 'span':'div'), {
-      "class": 'spoiler',
-      "data-spoiler-tag-id": id
-    }].concat(content);
-  });
-
-  ['smartass','corporate','humanism','alpha','rainbow'].forEach(function(typeface){
-    var classTag = 'typefaces-tag ' + typeface;
-    defineBBCode(typeface, true, function (content, attributes, inline) {
-      return [(inline? 'span':'div'), {
-        "class": classTag
-      }].concat(content);
-    });
-  });
-
-  var discourseBBCode = function(tag, inline){
-    var start = "[" + tag + "]";
-    var end = "[/" + tag + "]";
-    defineBBCode(tag, inline, function(content){
-      var l = ["",start].concat(content);
-      l.push(end);
-      return l;
-    });
-  };
-
-  // Discourse BBCodes that can be mixed with our custom BBCodes
-  defineBBCode("b", true, function(content, attributes, inline){
-    return [(inline? 'span':'div'), {'class': 'bbcode-b'}].concat(content);
-  });
-  defineBBCode("i", true, function(content, attributes, inline){
-    return [(inline? 'span':'div'), {'class': 'bbcode-i'}].concat(content);
-  });
-  defineBBCode("u", true, function(content, attributes, inline){
-    return [(inline? 'span':'div'), {'class': 'bbcode-u'}].concat(content);
-  });
-  defineBBCode("s", true, function(content, attributes, inline){
-    return [(inline? 'span':'div'), {'class': 'bbcode-s'}].concat(content);
-  });
-  defineBBCode("size", true, function(content, attributes, inline){
-    return [(inline? 'span':'div'), {'class': "bbcode-size-" + (parseInt(attributes["size"], 10) || 1)}].concat(content);
-  });
-  discourseBBCode("ul", false);
-  discourseBBCode("ol", false);
-  discourseBBCode("li", false);
-
-  var parser = new BBCodeParser(bbTags);
-
-  function replaceBBCodes(text) {
-    return parser.parseString(text);
+  if (Discourse.SiteSettings) {
+    init();
+  } else {
+    Discourse.initializer({initialize: init, name: 'awesome-bbcodes-initialize-processor'});
   }
-
-  Discourse.Dialect.addPreProcessor(replaceBBCodes);
-  //color whitelist
-  Discourse.Markdown.whiteListTag('span', 'style');
-  //typeface whitelist
-  Discourse.Markdown.whiteListTag('span', 'class', '*');
-  Discourse.Markdown.whiteListTag('span', 'data-spoiler-tag-id', '*');
-  Discourse.Markdown.whiteListTag('div', 'style');
-  Discourse.Markdown.whiteListTag('div', 'class', '*');
-  Discourse.Markdown.whiteListTag('div', 'data-spoiler-tag-id', '*');
 })();
