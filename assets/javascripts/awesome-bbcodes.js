@@ -509,7 +509,7 @@
         }].concat(content);
       });
     }
-    typefacesList.split("|").forEach(function(typeface){
+    typefacesList.forEach(function(typeface){
       var classTag = 'typefaces-tag ' + typeface;
       defineBBCode(typeface, true, function (content, attributes, inline) {
         return [(inline? 'span':'div'), {

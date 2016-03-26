@@ -1,18 +1,22 @@
 /**
   Apply our spoilers when the app boots
 **/
-import { decorateCooked } from 'discourse/lib/plugin-api';
+import { withPluginApi } from 'discourse/lib/plugin-api';
 import spoilContent from 'discourse/plugins/discourse-awesome-bbcodes/jquery/spoiler';
+
+function initializePlugin(api){
+  const siteSettings = api.container.lookup('site-settings:main');
+  if (!siteSettings.awesome_bbcodes_spoiler_enabled) { return; }
+  api.decorateCooked(function($elem) {
+    // text
+    //not(:has(img))
+    spoilContent.call($('.spoiler', $elem).removeClass('spoiler').addClass('spoiled'), $elem)
+  });
+}
 
 export default {
   name: "awesome-bbcodes-apply-spoilers",
   initialize: function(container) {
-    const siteSettings = container.lookup('site-settings:main');
-    if (!siteSettings.awesome_bbcodes_spoiler_enabled) { return; }
-    decorateCooked(container, function($elem) {
-      // text
-      //not(:has(img))
-      spoilContent.call($('.spoiler', $elem).removeClass('spoiler').addClass('spoiled'), $elem)
-    });
+    withPluginApi('0.1', api => initializePlugin(api));
   }
 };
