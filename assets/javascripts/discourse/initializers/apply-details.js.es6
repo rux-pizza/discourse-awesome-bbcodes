@@ -1,10 +1,13 @@
 import { decorateCooked } from "discourse/lib/plugin-api";
+import applyDetails from 'discourse/plugins/discourse-awesome-bbcodes/jquery/details';
 
 export default {
-  name: "apply-details",
+  name: "awesome-bbcodes-apply-details",
 
   initialize(container) {
-    decorateCooked(container, $elem => $("details", $elem).details());
+    const siteSettings = container.lookup('site-settings:main');
+    if (!(siteSettings.awesome_bbcodes_hide_enabled || siteSettings.awesome_bbcodes_nsfw_enabled)) { return; }
+    decorateCooked(container, $elem => applyDetails.call($("details", $elem)));
   }
 
 };
