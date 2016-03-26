@@ -1,0 +1,7 @@
+en:
+  site_settings:
+    awesome_bbcodes_color_enabled: 'Enable [color] tag'
+    awesome_bbcodes_nsfw_enabled: 'Enable [nsfw] tag'
+    awesome_bbcodes_hide_enabled: 'Enable [hide] tag'
+    awesome_bbcodes_spoiler_enabled: 'Enable [spoiler] tag'
+    awesome_bbcodes_typefaces_list: 'Typefaces list'

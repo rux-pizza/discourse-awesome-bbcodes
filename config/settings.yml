@@ -1,0 +1,23 @@
+awesome_bbcodes_plugin:
+  awesome_bbcodes_color_enabled:
+    client: true
+    default: true
+  awesome_bbcodes_nsfw_enabled:
+    client: true
+    default: true
+  awesome_bbcodes_hide_enabled:
+    client: true
+    default: true
+  awesome_bbcodes_spoiler_enabled:
+    client: true
+    default: true
+  awesome_bbcodes_typefaces_list:
+    client: true
+    type: list
+    default: 'alpha|corporate|humanism|rainbow|smartass'
+    choices:
+     - alpha
+     - corporate
+     - humanism
+     - rainbow
+     - smartass
