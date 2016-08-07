@@ -44,14 +44,6 @@
     return this.tokenType == token.tokenType && this.content == token.content;
   };
 
-  //var attrNameChars = "[a-zA-Z0-9.-_:;]";
-  //var unquotedAttrValueChars = '\\w';
-  //var attrValueChars = '[^"]';
-  //var attrValue = '"' + attrValueChars + '*"|' + unquotedAttrValueChars + '*';
-  //var attrPattern = new RegExp("(" + attrNameChars + '+)?=(?:("' + attrValueChars + '*")|(' + unquotedAttrValueChars + '*' + '))', "g");
-  //var pattern = '\\[(/\\w*)\\]|\\[(\\w+)(?:=(?:' + attrValue + '))?(?: ' + attrNameChars + '+=(?:' + attrValue + '))*\\]';
-  //var tagPattern = new RegExp(pattern, "g");
-
   var attrNameChars = "[a-zA-Z0-9.-_:;]";
   var attrValueChars = '[^"]';
   var attrPattern = new RegExp("(" + attrNameChars + '+)?="(' + attrValueChars + '*)"', "g");
@@ -102,16 +94,6 @@
 
   Tokenizer.prototype.tokenizeString = function (str) {
     var tokens = this.getTokens(str);
-    //var newTokens = [];
-    //var length = tokens.length;
-    //for (var i = 0; i < length; i++) {
-    //  var currentToken = tokens[i];
-    //  var bbTag = this.bbTags[currentToken.content];
-    //  if (typeof bbTag === 'undefined') {
-    //    currentToken = currentToken.asTextToken();
-    //  }
-    //  newTokens.push(currentToken);
-    //}
     return tokens;
   };
 
