@@ -1,0 +1,7 @@
+ar:
+  site_settings:
+    awesome_bbcodes_color_enabled: 'تفعيل [color] الوسم'
+    awesome_bbcodes_nsfw_enabled: 'تفعيل [nsfw] الوسم'
+    awesome_bbcodes_hide_enabled: 'تفعيل [hide] الوسم'
+    awesome_bbcodes_spoiler_enabled: 'تفعيل [spoiler] الوسم'
+    awesome_bbcodes_typefaces_list: 'قائمة المحرف'
