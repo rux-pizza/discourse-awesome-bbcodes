@@ -105,8 +105,7 @@ Tokenizer.tagToken = function (match) {
 };
 
 Tokenizer.prototype.tokenizeString = function (str) {
-  const tokens = this.getTokens(str);
-  return tokens;
+  return this.getTokens(str);
 };
 
 Tokenizer.prototype.getTokens = function (str) {
@@ -250,8 +249,8 @@ const isStringy = function(arg) {
 
 // check if array
 const isArray = Array.isArray || function(arg) {
-    return toString.call(arg) === '[object Array]';
-  };
+  return toString.call(arg) === '[object Array]';
+};
 
 const jsonMLToHtml = function(root) {
   const html = [];
@@ -322,8 +321,9 @@ BBCodeParser.prototype.flushBlock = function(subTreeStack, block){
   let j = subTreeStack.length - 1;
   let b = false;
   let result = block;
+  let ele = null;
   for(; (j >= 0 && !b); j--) {
-    const ele = subTreeStack[j];
+    ele = subTreeStack[j];
     const currentTree = ele[0][ele[1]];
     const bbTag = this.bbTags[currentTree.content];
     if(bbTag.inline && !ele[4] && !ele[5]) {
@@ -541,14 +541,13 @@ export function replaceAwesomeBBCodes(text, options) {
 }
 
 export function setup(helper) {
-  helper.whiteList(['span[style]',
+  helper.whiteList([
+    'span[style]',
     'span[class]',
     'span[data-spoiler-tag-id]',
     'div[style]',
     'div[class]',
-    'div[data-spoiler-tag-id]']);
-
-  helper.whiteList([
+    'div[data-spoiler-tag-id]',
     'summary',
     'summary[title]',
     'details',
