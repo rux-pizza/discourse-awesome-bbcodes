@@ -32,6 +32,6 @@ export default
   name: 'composer-awesome-bbcodes-helper',
   initialize(container)
   {
-    withPluginApi('0.1', api => initializePlugin(api));
+    withPluginApi('0.5', initializePlugin);
   }
 };

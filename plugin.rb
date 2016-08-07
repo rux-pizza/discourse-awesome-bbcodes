@@ -4,8 +4,6 @@
 # authors: David Montoya, Charles-Pierre Astolfi
 # url: https://github.com/rux-pizza/discourse-awesome-bbcodes
 
-register_asset 'javascripts/awesome-bbcodes.js', :server_side
-
 # Typeface fonts
 register_asset 'stylesheets/typefaces.scss'
 
