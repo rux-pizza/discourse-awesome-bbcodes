@@ -1,5 +1,6 @@
 import { withPluginApi } from 'discourse/lib/plugin-api';
 import hide from 'discourse/plugins/discourse-awesome-bbcodes/jquery/hide';
+import ComposerController from 'discourse/controllers/composer';
 
 function initializeHide(api) {
   const siteSettings = api.container.lookup('site-settings:main');
@@ -15,7 +16,6 @@ function initializeHide(api) {
     };
   });
 
-  const ComposerController = api.container.lookupFactory("controller:composer");
   ComposerController.reopen({
     actions: {
       insertHide() {
