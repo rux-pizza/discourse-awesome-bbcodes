@@ -7,6 +7,9 @@ en:
   js:
     hide:
       title: Hide Details
+    spoiler:
+      title: Blur Spoiler
     composer:
       hide_title: Summary
       hide_text: "This text will be hidden"
+      spoiler_text: "This text will be blurred"
