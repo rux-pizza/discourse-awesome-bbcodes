@@ -4,3 +4,9 @@ en:
       site_settings:
         categories:
           awesome_bbcodes_plugin: 'Awesome BBCodes Plugin'
+  js:
+    hide:
+      title: Hide Details
+    composer:
+      hide_title: Summary
+      hide_text: "This text will be hidden"
