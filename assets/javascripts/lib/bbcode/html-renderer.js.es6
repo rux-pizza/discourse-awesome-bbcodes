@@ -1,136 +1,143 @@
 import { TreeType } from './tree';
 import { isStringy, isArray } from './utilities';
 
+class RendererState {
+  // subtrees, subTree index, has current-tag been opened?, jsonML sequence, inline semantic, unknown
+  constructor(children, index, isOpen, jsonML, inline, unknown){
+    this.children = children;
+    this.index = index;
+    this.isOpen = isOpen;
+    this.jsonML = jsonML;
+    this.inline = inline;
+    this.unknown = unknown;
+  }
+}
+
 export default class Renderer {
   constructor(bbTags){
     this.tags = bbTags;
   }
-  flushBlock(subTreeStack, block){
+  flushBlock(stack, block){
     // found a line-break,
-    let j = subTreeStack.length - 1;
+    let j = stack.length - 1;
     let b = false;
     let result = block;
-    let ele = null;
+    let state = null;
     for(; (j >= 0 && !b); j--) {
-      ele = subTreeStack[j];
-      const currentTree = ele[0][ele[1]];
+      state = stack[j];
+      const currentTree = state.children[state.index];
       const bbTag = this.tags[currentTree.content];
-      if(bbTag.inline && !ele[4] && !ele[5]) {
-        result = [bbTag.markupGenerator(result, currentTree.attributes, false, currentTree.id)];
-        ele[4] = true;
+      if(bbTag.inline && !state.inline && !state.unknown) {
+        result = bbTag.markupGenerator([result], currentTree.attributes, false, currentTree.id);
+        state.inline = true;
       }else {
         b = true;
       }
     }
-    ele[3].push.apply(ele[3], result);
+    state.jsonML.push(result);
   }
-  breakLine(subTreeStack, disableInlineSemantics, position){
+  breakLine(stack, disableInlineSemantics, position){
     // found a line-break,
-    let j = (typeof(position) === "undefined")?subTreeStack.length - 1:position;
+    let j = (typeof(position) === "undefined")?stack.length - 1:position;
     let b = false;
     let found = false;
     let lastInline = null;
     for(; (j >= 0 && !b); j--) {
-      const ele = subTreeStack[j];
-      if (!found && ele[3].length === 0){
-        ele[5] = true;
-        if(ele[4]){
+      const state = stack[j];
+      if (!found && state.jsonML.length === 0){
+        state.unknown = true;
+        if(state.inline){
           lastInline = j;
         }
-        ele[4] = false;
+        state.inline = false;
       }else{
         found = true;
       }
-      if(j > 0 && ele[4] && !ele[5]){
+      if(j > 0 && state.inline && !state.unknown){
         // inline semantic
-        const parentEle = subTreeStack[j - 1];
-        const parentTree = parentEle[0][parentEle[1]];
+        const parentState = stack[j - 1];
+        const parentTree = parentState.children[parentState.index];
         //assert(parentTree.treeType === TreeType.Tag)
         // parentTree is an inline-tag and inline semantics are being enforced
         // push into current line of parent
         const bbTag = this.tags[parentTree.content];
-        parentEle[3].push(
-          bbTag.markupGenerator(ele[3], parentTree.attributes, true, parentTree.id)
+        parentState.jsonML.push(
+          bbTag.markupGenerator(state.jsonML, parentTree.attributes, true, parentTree.id)
         );
-        ele[3] = [];
+        state.jsonML = [];
         if(disableInlineSemantics){
-          ele[4] = false;
+          state.inline = false;
         }
       }else{
         b = true;
       }
     }
     if(!disableInlineSemantics && lastInline !== null){
-      this.breakLine(subTreeStack, true, lastInline - 1);
+      this.breakLine(stack, true, lastInline - 1);
     }
   }
 
   treeToJsonML(children) {
     const stack = [];
-    let result = [[],[""]];
+    let resultJsonML = [];
+    let resultInline = true;
     if(children.length > 0){
-      // subtrees, subTree index, has current-tag been opened?, jsonML sequence, inline semantic
-      stack.push([children, 0, false, [""], false, false]);
+      stack.push(new RendererState(children, 0, false, [""], false, false));
     }
     while(stack.length > 0 ){
-      const ele = stack[stack.length - 1];
-      const currentSubTrees = ele[0];
-      const currentIndex = ele[1];
-      const open = ele[2];
-      let jsonML = ele[3];
-      const currentTree = currentSubTrees[currentIndex];
-      const last = currentIndex === currentSubTrees.length - 1;
+      const state = stack[stack.length - 1];
+      const currentTree = state.children[state.index];
+      const last = state.index === state.children.length - 1;
       switch(currentTree.treeType){
         case TreeType.Text:
           stack.pop();
-          jsonML.push(currentTree.content);
+          state.jsonML.push(currentTree.content);
           break;
         case TreeType.LineBreak:
           this.breakLine(stack, false);
-          jsonML = ele[3];
-          jsonML.push(currentTree.content);
+          state.jsonML.push(currentTree.content);
           stack.pop();
           break;
         default:
           const bbTag = this.tags[currentTree.content];
-          if(open){
+          if(state.isOpen){
             stack.pop();
-            if(result[1]){
-              if(result[0].length > 0){
-                jsonML.push(bbTag.markupGenerator(result[0], currentTree.attributes, true, currentTree.id));
+            if(resultInline){
+              if(resultJsonML.length > 0){
+                state.jsonML.push(bbTag.markupGenerator(resultJsonML, currentTree.attributes, true, currentTree.id));
               }
             }else{
-              const block = [bbTag.markupGenerator(result[0], currentTree.attributes, false, currentTree.id)];
-              if(stack.length === 0 || (!ele[4])){
-                jsonML.push.apply(jsonML,block)
+              const block = bbTag.markupGenerator(resultJsonML, currentTree.attributes, false, currentTree.id);
+              if(stack.length === 0 || (!state.inline)){
+                state.jsonML.push(block);
               }else{
                 this.flushBlock(stack, block);
               }
-              jsonML = ele[3];
             }
           }else{
             stack.pop();
             if(!bbTag.inline){
               this.breakLine(stack, true);
-              jsonML = ele[3];
             }
-            stack.push([currentSubTrees, currentIndex, true, jsonML, ele[4], ele[5]]);
-            result = [[],bbTag.inline];
+            stack.push(new RendererState(state.children, state.index, true, state.jsonML, state.inline, state.unknown));
+            resultJsonML = [];
+            resultInline = bbTag.inline;
             if(currentTree.children.length > 0){
-              stack.push([currentTree.children, 0, false, [], bbTag.inline, false]);
+              stack.push(new RendererState(currentTree.children, 0, false, [], bbTag.inline, false));
             }
           }
           break;
       }
-      if(currentTree.treeType !== TreeType.Tag || open ) {
+      if(currentTree.treeType !== TreeType.Tag || state.isOpen ) {
         if(last){
-          result = [jsonML, ele[4]];
+          resultJsonML = state.jsonML;
+          resultInline = state.inline;
         }else{
-          stack.push([currentSubTrees, currentIndex + 1, false, jsonML, ele[4], ele[5]]);
+          stack.push(new RendererState(state.children, state.index + 1, false, state.jsonML, state.inline, state.unknown));
         }
       }
     }
-    return result[0];
+    return resultJsonML;
   }
 
   static jsonMLToHtml(root) {
