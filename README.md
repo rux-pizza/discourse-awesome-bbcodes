@@ -10,7 +10,7 @@ By default, support is provided for the following tags:
  
 It also features adds auto-complete to the composer for these tags.
 
-Compatible with Discourse v1.6.0 or greater uses Plugin-API 0.5.
+Compatible with Discourse v1.7.0. Uses Plugin-API 0.5.
 
 ##Usage
 
