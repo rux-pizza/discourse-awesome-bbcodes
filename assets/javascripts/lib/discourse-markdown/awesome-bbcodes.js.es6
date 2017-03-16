@@ -1,9 +1,9 @@
 import { registerOption } from 'pretty-text/pretty-text';
 
-import BBTag from './bb-tag';
-import Parser from './parser';
-import {Tokenizer} from './tokenizer';
-import Renderer from './html-renderer';
+import BBTag from '../bbcode/bb-tag';
+import Parser from '../bbcode/parser';
+import {Tokenizer} from '../bbcode/tokenizer';
+import Renderer from '../bbcode/html-renderer';
 
 
 registerOption((siteSettings, opts) => {
