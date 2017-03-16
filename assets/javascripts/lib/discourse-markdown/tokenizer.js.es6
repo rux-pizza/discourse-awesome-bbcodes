@@ -1,9 +1,9 @@
-const ATTRIBUTE_NAME_CHARACTERS = "[a-zA-Z0-9.-_:;]";
-const ATTRIBUTE_VALUE_CHARACTERS = '[^"]';
-const ATTRIBUTE_PATTERN = new RegExp("(" + ATTRIBUTE_NAME_CHARACTERS + '+)?="(' + ATTRIBUTE_VALUE_CHARACTERS + '*)"', "g");
-const QUOTED_ATTRIBUTE_PATTERN_INNER = '(?:="' + ATTRIBUTE_VALUE_CHARACTERS + '*")?(?: ' + ATTRIBUTE_NAME_CHARACTERS + '+="' + ATTRIBUTE_VALUE_CHARACTERS + '*")*';
+const ATTRIBUTE_NAME_CHARACTER = "[a-zA-Z0-9-_\\.:;]";
+const ATTRIBUTE_VALUE_CHARACTER = '[^"]';
+const ATTRIBUTE_PATTERN = new RegExp("(" + ATTRIBUTE_NAME_CHARACTER + '+)?="(' + ATTRIBUTE_VALUE_CHARACTER + '*)"', "g");
+const QUOTED_ATTRIBUTE_PATTERN_INNER = '(?:="' + ATTRIBUTE_VALUE_CHARACTER + '*")?(?: ' + ATTRIBUTE_NAME_CHARACTER + '+="' + ATTRIBUTE_VALUE_CHARACTER + '*")*';
 const QUOTED_ATTRIBUTE_PATTERN = new RegExp('^' + QUOTED_ATTRIBUTE_PATTERN_INNER + '$');
-const TAG_PATTERN = new RegExp('\\[(/\\w*)\\]|\\[(\\w+)(|'+ QUOTED_ATTRIBUTE_PATTERN_INNER +'|=([^\\]]*))\\]|\\n', "g");
+const TAG_PATTERN = new RegExp('\\[(/\\w*)\\]|\\[(\\w*)(|'+ QUOTED_ATTRIBUTE_PATTERN_INNER +'|=([^\\]]*))\\]|\\n', "g");
 
 const TokenType = {
   "Text": 0,
@@ -19,12 +19,12 @@ const TokenType = {
 let tokenIdCounter = 0;
 
 class Token {
-  constructor (tokenType, index, length, content, tagName, tagAttributes) {
+  constructor (tokenType, startIndex, endIndex, content, tagName, tagAttributes) {
     tokenIdCounter ++;
     this.id = tokenIdCounter;
     this.tokenType = tokenType;
-    this.index = index;
-    this.length = length;
+    this.startIndex = startIndex;
+    this.endIndex = endIndex;
     this.content = content;
     this.tagName = tagName;
     this.tagAttributes = tagAttributes;
@@ -94,4 +94,4 @@ class Tokenizer {
   }
 }
 
-export {TokenType, Token, Tokenizer};
+export {TokenType, Token, Tokenizer, ATTRIBUTE_NAME_CHARACTER};

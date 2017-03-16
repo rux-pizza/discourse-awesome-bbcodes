@@ -10,15 +10,15 @@ const TreeType = {
 };
 
 class Tree {
-  constructor(treeType, content, attributes, subTrees, id, startTagToken, endTagToken) {
+  constructor(treeType, content, attributes, children, id, startTagToken, endTagToken) {
     this.treeType = treeType;
     this.content = content;
     this.attributes = attributes;
     this.id = id;
-    if (typeof subTrees === 'undefined') {
-      this.subTrees = [];
+    if (typeof children === 'undefined') {
+      this.children = [];
     } else {
-      this.subTrees = subTrees;
+      this.children = children;
     }
     this.startTagToken = startTagToken;
     this.endTagToken = endTagToken;

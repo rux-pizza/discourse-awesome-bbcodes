@@ -3,7 +3,7 @@ import { isStringy, isArray } from './utilities';
 
 export default class Renderer {
   constructor(bbTags){
-    this.bbTags = bbTags;
+    this.tags = bbTags;
   }
   flushBlock(subTreeStack, block){
     // found a line-break,
@@ -14,7 +14,7 @@ export default class Renderer {
     for(; (j >= 0 && !b); j--) {
       ele = subTreeStack[j];
       const currentTree = ele[0][ele[1]];
-      const bbTag = this.bbTags[currentTree.content];
+      const bbTag = this.tags[currentTree.content];
       if(bbTag.inline && !ele[4] && !ele[5]) {
         result = [bbTag.markupGenerator(result, currentTree.attributes, false, currentTree.id)];
         ele[4] = true;
@@ -48,7 +48,7 @@ export default class Renderer {
         //assert(parentTree.treeType === TreeType.Tag)
         // parentTree is an inline-tag and inline semantics are being enforced
         // push into current line of parent
-        const bbTag = this.bbTags[parentTree.content];
+        const bbTag = this.tags[parentTree.content];
         parentEle[3].push(
           bbTag.markupGenerator(ele[3], parentTree.attributes, true, parentTree.id)
         );
@@ -65,12 +65,12 @@ export default class Renderer {
     }
   }
 
-  treeToJsonML(subTrees) {
+  treeToJsonML(children) {
     const stack = [];
     let result = [[],[""]];
-    if(subTrees.length > 0){
+    if(children.length > 0){
       // subtrees, subTree index, has current-tag been opened?, jsonML sequence, inline semantic
-      stack.push([subTrees, 0, false, [""], false, false]);
+      stack.push([children, 0, false, [""], false, false]);
     }
     while(stack.length > 0 ){
       const ele = stack[stack.length - 1];
@@ -92,7 +92,7 @@ export default class Renderer {
           stack.pop();
           break;
         default:
-          const bbTag = this.bbTags[currentTree.content];
+          const bbTag = this.tags[currentTree.content];
           if(open){
             stack.pop();
             if(result[1]){
@@ -116,8 +116,8 @@ export default class Renderer {
             }
             stack.push([currentSubTrees, currentIndex, true, jsonML, ele[4], ele[5]]);
             result = [[],bbTag.inline];
-            if(currentTree.subTrees.length > 0){
-              stack.push([currentTree.subTrees, 0, false, [], bbTag.inline, false]);
+            if(currentTree.children.length > 0){
+              stack.push([currentTree.children, 0, false, [], bbTag.inline, false]);
             }
           }
           break;
@@ -193,6 +193,6 @@ export default class Renderer {
   }
 
   render(tree){
-    return Renderer.jsonMLToHtml(this.treeToJsonML(tree.subTrees));
+    return Renderer.jsonMLToHtml(this.treeToJsonML(tree.children));
   }
 }

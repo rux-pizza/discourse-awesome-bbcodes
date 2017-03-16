@@ -9,13 +9,13 @@ class ParserState {
 }
 
 class Parser {
-  constructor(bbTags) {
-    this.bbTags = bbTags;
+  constructor(allowedTagNames) {
+    this.allowedTagNames = allowedTagNames;
   }
-  parse(tokens) {
+  parse(tokens, lenient) {
     const statesStack = [new ParserState(null, [])];
     const length = tokens.length;
-    let state, parentState, bbTag = null;
+    let state, parentState, tag = null;
     for (let i = 0; i < length; i++) {
       const currentToken = tokens[i];
       // we build on the last element of the states stack
@@ -29,20 +29,18 @@ class Parser {
           state.children.push(new Tree(TreeType.LineBreak, currentToken.content));
           break;
         case TokenType.StartTag:
-          bbTag = this.bbTags[currentToken.tagName];
-          if (typeof(bbTag) === "undefined") {
+          if (this.allowedTagNames != null && this.allowedTagNames[currentToken.tagName] == null) {
             state.children.push(new Tree(TreeType.Text, currentToken.content));
           } else {
             statesStack.push(new ParserState(currentToken, []));
           }
           break;
         case TokenType.EndTag:
-          bbTag = this.bbTags[currentToken.tagName];
-          if (typeof(bbTag) === "undefined") {
+          if (this.allowedTagNames != null && this.allowedTagNames[currentToken.tagName] == null) {
             state.children.push(new Tree(TreeType.Text, currentToken.content));
           } else {
             if (state.openingToken !== null) {
-              if (state.openingToken.tagName === currentToken.tagName) {
+              if (lenient || state.openingToken.tagName === currentToken.tagName) {
                 statesStack.pop();
                 parentState = statesStack[statesStack.length - 1];
                 parentState.children.push(new Tree(TreeType.Tag, currentToken.tagName, state.openingToken.tagAttributes, state.children, currentToken.id, state.openingToken, currentToken));
