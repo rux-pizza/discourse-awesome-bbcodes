@@ -1,4 +1,5 @@
 import Editor from 'discourse/components/d-editor'
+import { findRawTemplate } from 'discourse/lib/raw-templates';
 
 const searchBBCodes = function(term, toSearch, options) {
   var maxResults = (options && options["maxResults"]) || -1;
@@ -35,22 +36,12 @@ export default function(bbCodeList, autocompleteTag){
       const container = this.get('container'),
         $editorInput = this.$('.d-editor-input');
 
-      const template = this.container.lookup('template:javascripts/discourse-awesome-bbcodes/templates/bbcode-autocomplete.raw');
+      const template = findRawTemplate('javascripts/discourse-awesome-bbcodes/templates/bbcode-autocomplete');
       autocompleteTag.call($editorInput, {
         template: template,
         key: "[",
         transformComplete(v) {
-          if (v.code.indexOf('=', v.code.length - 1) !== -1) {
-            return {
-              text: v.code + "]" + "[/" + v.code.substring(0, v.code.length - 1) + "]",
-              caretPosition: v.code.length + 1
-            }
-          } else {
-            return {
-              text: v.code + "]" + "[/" + v.code + "]",
-              caretPosition: v.code.length + 2
-            }
-          }
+          return v.code;
         },
         dataSource(term) {
           return new Ember.RSVP.Promise(function (resolve) {

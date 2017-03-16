@@ -21,7 +21,6 @@ function initializePlugin(api){
 
   const typefacesList = (siteSettings.awesome_bbcodes_typefaces_list.length === 0)?[]:siteSettings.awesome_bbcodes_typefaces_list.split("|");
   bbCodeList = bbCodeList.concat(typefacesList).sort();
-
   if(bbCodeList.length > 0){
     initializeBBCodeComposer(bbCodeList, autocompleteTag);
   }
