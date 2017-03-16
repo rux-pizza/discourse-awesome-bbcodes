@@ -6,9 +6,9 @@
 export const CANCELLED_STATUS = "__CANCELLED";
 import { setCaretPosition, caretPosition } from 'discourse/lib/utilities';
 
-import Parser from '../lib/bbcode/parser';
-import {Tokenizer, ATTRIBUTE_NAME_CHARACTER} from '../lib/bbcode/tokenizer';
-import transform from '../lib/bbcode/transform';
+import Parser from '../lib/discourse-markdown/bbcode/parser';
+import {Tokenizer, ATTRIBUTE_NAME_CHARACTER} from '../lib/discourse-markdown/bbcode/tokenizer';
+import transform from '../lib/discourse-markdown/bbcode/transform';
 
 const ATTRIBUTE_NAME_CHARACTER_PATTERN = new RegExp(ATTRIBUTE_NAME_CHARACTER);
 const VALID_TERM_PATTERN = new RegExp('^' + ATTRIBUTE_NAME_CHARACTER + '*$');
