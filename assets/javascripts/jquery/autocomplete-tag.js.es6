@@ -11,7 +11,7 @@ import {Tokenizer, ATTRIBUTE_NAME_CHARACTER} from '../lib/discourse-markdown/bbc
 import transform from '../lib/discourse-markdown/bbcode/transform';
 
 const ATTRIBUTE_NAME_CHARACTER_PATTERN = new RegExp(ATTRIBUTE_NAME_CHARACTER);
-const VALID_TERM_PATTERN = new RegExp('^' + ATTRIBUTE_NAME_CHARACTER + '*$');
+const VALID_TERM_PATTERN = new RegExp('^/?' + ATTRIBUTE_NAME_CHARACTER + '*$');
 
 const ALLOWED_PREVIOUS_CHARACTER_PATTERN = /[\s\S]/;
 
@@ -158,29 +158,18 @@ export default function(options) {
         }
 
         if (term) {
-          //const tokenizer = new Tokenizer();
-          //const parser = new Parser();
           var text = me.val();
-          //let tokens = tokenizer.tokenize(text);
-          //let parsed = parser.parse(tokens);
           let addAttributes = term.substr(-1, 1) === "=";
           let rawTerm = (addAttributes) ? term.substring(0, term.length - 1) : term;
           let result = transform(parsed, completeStart, rawTerm, addAttributes);
           if(result.hasChanged){
             text = result.text;
           }else{
-            //let lenientlyParsed = parser.parse(tokens, true);
-            //let lenientResult = transform(lenientlyParsed, completeStart, rawTerm, addAttributes);
-            //if(lenientResult.hasChanged){
-            //  text = lenientResult.text;
-            //}else{
-              if(text.substr(completeStart + 1, 1) === "/"){
-                text = text.substring(0, completeStart) + (options.key || "") + "/" + rawTerm + ']' + text.substring(completeEnd + 1, text.length);
-              }else{
-                text = text.substring(0, completeStart) + (options.key || "") + term + '][/' + rawTerm + ']' + text.substring(completeEnd + 1, text.length);
-              }
-
-   //         }
+            if(text.substr(completeStart + 1, 1) === "/"){
+              text = text.substring(0, completeStart) + (options.key || "") + "/" + rawTerm + ']' + text.substring(completeEnd + 1, text.length);
+            }else{
+              text = text.substring(0, completeStart) + (options.key || "") + term + '][/' + rawTerm + ']' + text.substring(completeEnd + 1, text.length);
+            }
           }
           me.val(text);
           setCaretPosition(me[0], completeStart + 1 + term.length + (addAttributes ? 0 : 1));
@@ -401,7 +390,8 @@ export default function(options) {
     let initial = c;
     let prevIsGood = true;
     let prev;
-    while (prevIsGood && c >= 0) {
+    let seenSlash = false;
+    while ((prevIsGood || seenSlash ) && c >= 0) {
       c -= 1;
       prev = me[0].value[c];
       let stopFound = prev === options.key;
@@ -414,7 +404,13 @@ export default function(options) {
           return true;
         }
       }
+      if(seenSlash){
+        break;
+      }
       prevIsGood = ATTRIBUTE_NAME_CHARACTER_PATTERN.test(prev);
+      if (prev === "/"){
+        seenSlash = true;
+      }
     }
   }
 
